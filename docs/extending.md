@@ -32,7 +32,7 @@ system, website, knowledge base):
 
 Every dependency is pinned exactly (no `^` or `~`) and `bun.lock` is
 committed; the template test fails on a range. What the upgrade guides of
-Astro 7 and the profile's verification (LazurioPlatform#822) mean here:
+Astro 7 and the profile's verification (Lazurio/LazurioPlatform#822) mean here:
 
 - **Markdown processor.** Astro 7 no longer installs
   `@astrojs/markdown-remark`. The App adds no remark or rehype plugin of its
