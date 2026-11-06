@@ -61,9 +61,13 @@ describe("start contract", () => {
         });
         expect(foreign.status).toBe(403);
       } finally {
-        server.kill("SIGTERM");
+        if (process.platform === "win32") stopTree(server.pid);
+        else server.kill("SIGTERM");
       }
-      expect(await server.exited).toBe(0);
+      const exitCode = await server.exited;
+      // Windows has no SIGTERM; the process tree is terminated instead, as
+      // Mission Control's start test does.
+      if (process.platform !== "win32") expect(exitCode).toBe(0);
     },
     startTimeoutMs + warmUpMs + 30_000,
   );
@@ -85,8 +89,14 @@ async function warmUp(): Promise<void> {
     stderr: "ignore",
   });
   await firstResponse(`http://127.0.0.1:${port}/`, warmUpMs).catch(() => null);
-  Bun.spawnSync(["taskkill", "/T", "/F", "/PID", String(server.pid)]);
+  stopTree(server.pid);
   await server.exited;
+}
+
+/** Windows: ends `bun run` and the server it started, which a kill of the
+ * parent alone would leave running. */
+function stopTree(pid: number): void {
+  Bun.spawnSync(["taskkill", "/T", "/F", "/PID", String(pid)]);
 }
 
 async function firstResponse(url: string, timeoutMs: number): Promise<Response> {
