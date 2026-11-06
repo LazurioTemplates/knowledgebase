@@ -1,5 +1,6 @@
 import { afterAll, describe, expect, test } from "bun:test";
 import { existsSync, readFileSync, rmSync, statSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import packageJson from "../package.json";
 import { readContent } from "../src/content-check";
@@ -35,6 +36,7 @@ function build(app: string) {
     env: {
       HOME: process.env.HOME ?? "",
       PATH: dirname(process.execPath),
+      TMPDIR: process.env.TMPDIR ?? tmpdir(),
       NODE_ENV: "production",
       ...(process.env.SYSTEMROOT ? { SYSTEMROOT: process.env.SYSTEMROOT } : {}),
     },
