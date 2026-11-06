@@ -59,6 +59,14 @@ describe("template contract", () => {
     expect(ranges).toEqual([]);
   });
 
+  test("declares the built version that runs from main (Module Standard 4.5)", () => {
+    const runtime = packageJson.lazurio.runtime;
+    expect(runtime.build_script).toBe("build");
+    expect(packageJson.scripts.build).toBe("astro build");
+    expect(runtime.build_output).toBe("dist");
+    expect(runtime.static_fallback).toBe("404");
+  });
+
   test("CI runs the pinned Bun and the one check", () => {
     const bun = packageJson.packageManager.replace("bun@", "");
     for (const path of [".github/workflows/check.yml", ".github/workflows/windows.yml"]) {
