@@ -102,7 +102,10 @@ port, the release you will merge):
 lazurio module create <Organization>/<slug> --stack astro-starlight --teams <team,team> --dry-run --json
 ```
 
-Teams come from the Organization's real list; ask the person which ones, and
+Leave out `--data`: the knowledge base has no data layer of its own, its
+pages live in the module's own repository (`app/v2`, see
+[extending.md](extending.md#when-the-knowledge-base-would-change-generation)),
+and the release replaces the scaffold's `app/v1` in step 6. Teams come from the Organization's real list; ask the person which ones, and
 never invent one. Only after the person confirms the plan, run it with
 `--confirm <plan>` from the task worktree of the Organization root. The run
 creates the private repository, places the module in `workspace/<slug>`,
