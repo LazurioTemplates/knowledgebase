@@ -1,0 +1,31 @@
+---
+// The page title of Starlight, followed by the page's metadata in words:
+// whether it is valid, who keeps it true, when it was last confirmed, and for
+// a decision who made it and when. Pages without metadata look as before.
+// Search indexes only the other names of a term (`Také`), so that results
+// show the text of a page, not its metadata.
+import Default from "@astrojs/starlight/components/PageTitle.astro";
+import { describePage } from "../meta";
+
+const route = Astro.locals.starlightRoute;
+const facts = describePage(route.entry.data, route.lang, (id) => `/${id}/`);
+---
+
+<Default />
+{
+  facts.length > 0 && (
+    <p class="kb-meta">
+      {facts.map((fact) => (
+        <>
+          <span
+            class:list={["kb-meta__fact", fact.tone && `kb-meta__fact--${fact.tone}`]}
+            data-pagefind-ignore={fact.indexed ? undefined : true}
+          >
+            {fact.label}:{" "}
+            {fact.href ? <a href={fact.href}>{fact.value}</a> : fact.value}
+          </span>{" "}
+        </>
+      ))}
+    </p>
+  )
+}

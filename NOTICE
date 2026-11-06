@@ -1,0 +1,41 @@
+Knowledgebase template of the Lazurio Marketplace, LazurioTemplates/knowledgebase
+Copyright (c) 2026 Lazurio contributors, licensed under MIT (see LICENSE).
+
+Everything in this repository is covered by the MIT license: the code of the
+viewer App and its tools, the Markdown pages, the skills for agents, the
+favicon and the screenshots in docs/screenshots/.
+
+The Organization is invented. "Example", its people (Alex Morgan, Sam
+Taylor), its offer, experiments, roles and decisions, in Czech and in
+English, are fictional; they describe no real company, person or customer. An Organization that adopts
+this template replaces them with its own content or removes them
+(docs/adoption.md).
+
+Design tokens
+-------------
+
+app/v2/src/design-system/tokens.json is an unchanged copy of
+content/brand/colors/tokens.json of LazurioTemplates/design-system at the
+release named in app/v2/src/design-system/lock.json (v1.0.0), and
+app/v2/src/design-system/theme.ts adapts the reading of the tokens and the
+contrast ratio of its app/v1/src/tokens.ts; Copyright (c) 2026 Lazurio
+contributors, MIT. An Organization that syncs the copy from its own design
+system takes that design system's license with it.
+
+Third-party material
+--------------------
+
+No font, image, icon set or other third-party asset is distributed in this
+repository.
+
+- Fonts. The tokens name "Inter" and "JetBrains Mono" in their font stacks;
+  a browser uses them only when they are installed, otherwise the system
+  font. No font file is shipped or loaded from a CDN. Both fonts are
+  licensed under the SIL Open Font License 1.1 by their authors
+  (https://github.com/rsms/inter, https://github.com/JetBrains/JetBrainsMono).
+- Dependencies. The viewer installs its npm dependencies at preparation time
+  (app/v2/package.json, app/v2/bun.lock); they are not part of this
+  repository and keep their own licenses: Astro, Starlight and
+  @astrojs/check (MIT), @lazurio/module-kit (MIT), TypeScript (Apache-2.0),
+  Biome (MIT OR Apache-2.0) and @types/bun (MIT). The static build contains
+  the code Astro, Starlight and Pagefind generate for the pages.

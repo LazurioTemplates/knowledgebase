@@ -1,0 +1,94 @@
+{
+  "schema_version": "lazurio.knowledgebase.v2",
+  "language": "cs",
+  "languages": {
+    "cs": {
+      "root_pages": [
+        "index",
+        "jak-psat"
+      ],
+      "sections": [
+        {
+          "directory": "o-organizaci",
+          "kind": "organization",
+          "label": "O Organizaci",
+          "holds": "Co Organizace dělá, pro koho, jak vydělává a čím se řídí."
+        },
+        {
+          "directory": "lide-a-role",
+          "kind": "roles",
+          "label": "Lidé a role",
+          "holds": "Kdo za co odpovídá, kdo koho zastupuje a na koho se s čím obrátit."
+        },
+        {
+          "directory": "procesy",
+          "kind": "processes",
+          "label": "Procesy a postupy",
+          "holds": "Jak se opakovaná práce dělá krok za krokem, pro lidi."
+        },
+        {
+          "directory": "postupy-pro-agenty",
+          "kind": "agent-procedures",
+          "label": "Postupy pro agenty",
+          "holds": "Jak má agent opakovanou práci udělat, co smí sám a kde se zastaví."
+        },
+        {
+          "directory": "slovnik",
+          "kind": "glossary",
+          "label": "Slovník",
+          "holds": "Pojmy Organizace, jedna stránka na pojem, s jinými názvy a s tím, s čím si ho neplést."
+        },
+        {
+          "directory": "rozhodnuti",
+          "kind": "decisions",
+          "label": "Rozhodnutí",
+          "holds": "Co se rozhodlo, kdo a kdy rozhodl, proč a co z toho plyne."
+        }
+      ]
+    },
+    "en": {
+      "root_pages": [
+        "index",
+        "how-to-write"
+      ],
+      "sections": [
+        {
+          "directory": "organization",
+          "kind": "organization",
+          "label": "About the Organization",
+          "holds": "What the Organization does, for whom, how it earns its living and what guides its decisions."
+        },
+        {
+          "directory": "people-and-roles",
+          "kind": "roles",
+          "label": "People and roles",
+          "holds": "Who is responsible for what, who stands in for whom, and whom to ask about what."
+        },
+        {
+          "directory": "processes",
+          "kind": "processes",
+          "label": "Processes and procedures",
+          "holds": "How repeated work is done step by step, for people."
+        },
+        {
+          "directory": "agent-procedures",
+          "kind": "agent-procedures",
+          "label": "Procedures for agents",
+          "holds": "How an agent does repeated work, what it may do on its own and where it stops."
+        },
+        {
+          "directory": "glossary",
+          "kind": "glossary",
+          "label": "Glossary",
+          "holds": "The Organization's terms, one page per term, with their other names and what not to confuse them with."
+        },
+        {
+          "directory": "decisions",
+          "kind": "decisions",
+          "label": "Decisions",
+          "holds": "What was decided, who decided and when, why, and what follows from it."
+        }
+      ]
+    }
+  }
+}
