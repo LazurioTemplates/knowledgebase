@@ -79,13 +79,20 @@ describe("template contract", () => {
     }
   });
 
-  test("the Marketplace screens are WebP files 1600 px wide", () => {
-    const dir = join(root, "docs/screenshots");
-    const files = readdirSync(dir).filter((name) => !name.startsWith("."));
-    expect(files.length).toBeGreaterThan(0);
-    for (const name of files) {
-      expect(name).toEndWith(".webp");
-      expect(webpSize(readFileSync(join(dir, name))).width, name).toBe(1600);
+  test("the Marketplace screens are WebP files 1600 px wide, the same shots in each language", () => {
+    const shots = (language: string) =>
+      readdirSync(join(root, "docs/screenshots", language))
+        .filter((name) => !name.startsWith("."))
+        .sort();
+    const czech = shots("cs");
+    expect(czech.length).toBeGreaterThan(0);
+    expect(shots("en")).toEqual(czech);
+    for (const language of ["cs", "en"]) {
+      for (const name of czech) {
+        expect(name).toEndWith(".webp");
+        const bytes = readFileSync(join(root, "docs/screenshots", language, name));
+        expect(webpSize(bytes).width, `${language}/${name}`).toBe(1600);
+      }
     }
   });
 });

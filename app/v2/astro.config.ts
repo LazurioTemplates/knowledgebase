@@ -2,6 +2,7 @@ import { fileURLToPath } from "node:url";
 import starlight from "@astrojs/starlight";
 import { astroServerOptions, ModuleKitError, onShutdown } from "@lazurio/module-kit";
 import { defineConfig } from "astro/config";
+import { LABELS } from "./src/labels";
 import { loadStructure, sidebarOf } from "./src/structure";
 
 const LISTENER = "app";
@@ -25,7 +26,9 @@ function listenerServer(): ReturnType<typeof astroServerOptions> {
 if (serving) onShutdown(() => undefined);
 
 // The content lies beside the App in data/v2 with its declared structure; a
-// structure that does not hold stops here, before anything is built.
+// structure that does not hold stops here, before anything is built. The App
+// shows the one language data/v2/knowledgebase.json names: the interface and
+// the pages in that language only.
 const structure = loadStructure();
 
 export default defineConfig({
@@ -44,7 +47,7 @@ export default defineConfig({
       favicon: "/favicon.svg",
       // One locale at the root: the index answers 200 itself, which the
       // Launchpad health probe needs (it does not follow redirects).
-      locales: { root: { label: "Čeština", lang: structure.language } },
+      locales: { root: { label: LABELS[structure.language].name, lang: structure.language } },
       sidebar: sidebarOf(structure),
       routeMiddleware: "./src/routeData.ts",
       components: { PageTitle: "./src/components/PageTitle.astro" },

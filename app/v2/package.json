@@ -15,8 +15,9 @@
     "check": "bun run typecheck && bun run lint && bun run test",
     "test": "bun test",
     "start:empty": "bun run src/cli/empty-start.ts",
-    "theme:write": "bun run src/cli/design-system.ts write",
-    "design-system:refresh": "bun run src/cli/design-system.ts refresh"
+    "start:language": "bun run src/cli/start-language.ts",
+    "theme:write": "bun run src/design-system/generate.ts",
+    "design-system:sync": "bun run src/design-system/sync.ts"
   },
   "dependencies": {
     "@astrojs/starlight": "0.42.8",

@@ -5,19 +5,27 @@ import { fileURLToPath } from "node:url";
 // The declared structure of the content in data/v2 (Lazurio Module Standard,
 // App generations: `app/v2` keeps its content beside the App, in `data/v2/`,
 // with a declared structure the App checks). `knowledgebase.json` names the
-// sections; every page lives in one of them or is one of the root pages. The
-// App reads the structure when Astro loads its configuration, so a structure
-// that does not hold stops the build and the development server.
+// language the knowledge base is written and shown in, and for each language
+// it carries the root pages and the sections; the pages of a language live in
+// `docs/<language>/`. The App builds the one language the declaration names,
+// so a screen never mixes two languages. The App reads the structure when
+// Astro loads its configuration, so a structure that does not hold stops the
+// build and the development server.
 //
 // This module runs under Node or Bun (Astro loads the configuration with the
 // runtime that started it), so it uses only `node:` APIs.
 
 export const SCHEMA_VERSION = "lazurio.knowledgebase.v2";
 
+/** The languages of Lazurio (the `locale` of a Folder's profile). */
+export const LANGUAGES = ["cs", "en"] as const;
+export type Language = (typeof LANGUAGES)[number];
+export const DEFAULT_LANGUAGE: Language = "cs";
+
 /** What a section is for. Agents and the checks find a section by its kind,
  * so an Organization may rename its directory and label. Each of these kinds
- * has exactly one section; further sections of the Organization's own (its
- * customers, its products) are of kind `other`. */
+ * has exactly one section in a language; further sections of the
+ * Organization's own (its customers, its products) are of kind `other`. */
 export const SECTION_KINDS = [
   "organization",
   "roles",
@@ -35,12 +43,20 @@ export type Section = Readonly<{
   holds: string;
 }>;
 
+/** The structure of one language. */
 export type Structure = Readonly<{
-  schema_version: typeof SCHEMA_VERSION;
+  language: Language;
+  /** The pages' directory below data/v2: `docs/<language>`. */
   content_root: string;
-  language: string;
   root_pages: readonly string[];
   sections: readonly Section[];
+}>;
+
+export type Declaration = Readonly<{
+  schema_version: typeof SCHEMA_VERSION;
+  /** The language the App shows. */
+  language: Language;
+  languages: Readonly<Partial<Record<Language, Structure>>>;
 }>;
 
 /** data/v2, the content beside this App generation. */
@@ -50,6 +66,9 @@ export const defaultDataRoot = fileURLToPath(new URL("../../../data/v2/", import
 // every path is a clean URL and checks out on every system.
 export const NAME = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
+const isLanguage = (value: unknown): value is Language =>
+  (LANGUAGES as readonly unknown[]).includes(value);
+
 function text(value: unknown, path: string): string {
   if (typeof value !== "string" || value.trim() === "") {
     throw new Error(`knowledgebase.json: ${path} must be a non-empty string`);
@@ -57,7 +76,61 @@ function text(value: unknown, path: string): string {
   return value;
 }
 
-export function parseStructure(value: unknown): Structure {
+function parseLanguage(language: Language, value: unknown): Structure {
+  const at = `languages.${language}`;
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    throw new Error(`knowledgebase.json: ${at} must be an object`);
+  }
+  const raw = value as Record<string, unknown>;
+  if (!Array.isArray(raw.root_pages) || raw.root_pages[0] !== "index") {
+    throw new Error(`knowledgebase.json: ${at}.root_pages must list the root pages, index first`);
+  }
+  const rootPages = raw.root_pages.map((page, i) => {
+    const name = text(page, `${at}.root_pages[${i}]`);
+    if (!NAME.test(name))
+      throw new Error(`knowledgebase.json: ${at}.root_pages[${i}] is not a name`);
+    return name;
+  });
+  if (!Array.isArray(raw.sections) || raw.sections.length === 0) {
+    throw new Error(`knowledgebase.json: ${at}.sections must list at least one section`);
+  }
+  const seen = new Set<string>(rootPages);
+  const sections = raw.sections.map((entry, i): Section => {
+    const path = `${at}.sections[${i}]`;
+    if (typeof entry !== "object" || entry === null) {
+      throw new Error(`knowledgebase.json: ${path} must be an object`);
+    }
+    const section = entry as Record<string, unknown>;
+    const directory = text(section.directory, `${path}.directory`);
+    if (!NAME.test(directory)) {
+      throw new Error(`knowledgebase.json: ${path}.directory "${directory}" is not a name`);
+    }
+    if (seen.has(directory)) {
+      throw new Error(`knowledgebase.json: "${directory}" is declared twice in ${at}`);
+    }
+    seen.add(directory);
+    const kind = section.kind;
+    if (kind !== "other" && !(SECTION_KINDS as readonly unknown[]).includes(kind)) {
+      throw new Error(
+        `knowledgebase.json: ${path}.kind must be one of ${SECTION_KINDS.join(", ")} or other`,
+      );
+    }
+    return {
+      directory,
+      kind: kind as SectionKind,
+      label: text(section.label, `${path}.label`),
+      holds: text(section.holds, `${path}.holds`),
+    };
+  });
+  for (const kind of SECTION_KINDS) {
+    if (sections.filter((section) => section.kind === kind).length !== 1) {
+      throw new Error(`knowledgebase.json: ${at} needs exactly one section of kind "${kind}"`);
+    }
+  }
+  return { language, content_root: `docs/${language}`, root_pages: rootPages, sections };
+}
+
+export function parseDeclaration(value: unknown): Declaration {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
     throw new Error("knowledgebase.json must be an object");
   }
@@ -65,58 +138,27 @@ export function parseStructure(value: unknown): Structure {
   if (raw.schema_version !== SCHEMA_VERSION) {
     throw new Error(`knowledgebase.json: schema_version must be ${SCHEMA_VERSION}`);
   }
-  const contentRoot = text(raw.content_root, "content_root");
-  const language = text(raw.language, "language");
-  if (!Array.isArray(raw.root_pages) || !raw.root_pages.includes("index")) {
-    throw new Error("knowledgebase.json: root_pages must list the pages at the root, index first");
+  const map = raw.languages;
+  if (typeof map !== "object" || map === null || Array.isArray(map)) {
+    throw new Error("knowledgebase.json: languages must map a language to its structure");
   }
-  const rootPages = raw.root_pages.map((page, i) => {
-    const name = text(page, `root_pages[${i}]`);
-    if (!NAME.test(name)) throw new Error(`knowledgebase.json: root_pages[${i}] is not a name`);
-    return name;
-  });
-  if (!Array.isArray(raw.sections) || raw.sections.length === 0) {
-    throw new Error("knowledgebase.json: sections must list at least one section");
-  }
-  const seen = new Set<string>(rootPages);
-  const sections = raw.sections.map((entry, i): Section => {
-    if (typeof entry !== "object" || entry === null) {
-      throw new Error(`knowledgebase.json: sections[${i}] must be an object`);
-    }
-    const section = entry as Record<string, unknown>;
-    const directory = text(section.directory, `sections[${i}].directory`);
-    if (!NAME.test(directory)) {
-      throw new Error(`knowledgebase.json: sections[${i}].directory "${directory}" is not a name`);
-    }
-    if (seen.has(directory)) {
-      throw new Error(`knowledgebase.json: "${directory}" is declared twice`);
-    }
-    seen.add(directory);
-    const kind = section.kind;
-    if (kind !== "other" && !(SECTION_KINDS as readonly unknown[]).includes(kind)) {
+  const languages: Partial<Record<Language, Structure>> = {};
+  for (const [language, structure] of Object.entries(map)) {
+    if (!isLanguage(language)) {
       throw new Error(
-        `knowledgebase.json: sections[${i}].kind must be one of ${SECTION_KINDS.join(", ")} or other`,
+        `knowledgebase.json: languages.${language} is not one of ${LANGUAGES.join(", ")}`,
       );
     }
-    return {
-      directory,
-      kind: kind as SectionKind,
-      label: text(section.label, `sections[${i}].label`),
-      holds: text(section.holds, `sections[${i}].holds`),
-    };
-  });
-  for (const kind of SECTION_KINDS) {
-    if (sections.filter((section) => section.kind === kind).length !== 1) {
-      throw new Error(`knowledgebase.json: exactly one section must be of kind "${kind}"`);
-    }
+    languages[language] = parseLanguage(language, structure);
   }
-  return {
-    schema_version: SCHEMA_VERSION,
-    content_root: contentRoot,
-    language,
-    root_pages: rootPages,
-    sections,
-  };
+  if (!isLanguage(raw.language) || !languages[raw.language]) {
+    throw new Error("knowledgebase.json: language must name one of the declared languages");
+  }
+  return { schema_version: SCHEMA_VERSION, language: raw.language, languages };
+}
+
+export function loadDeclaration(dataRoot: string = defaultDataRoot): Declaration {
+  return parseDeclaration(JSON.parse(readFileSync(join(dataRoot, "knowledgebase.json"), "utf8")));
 }
 
 /** The section of a kind: every kind has exactly one. */
@@ -128,17 +170,21 @@ export function sectionOf(structure: Structure, kind: (typeof SECTION_KINDS)[num
 
 const pageFile = (name: string) => [`${name}.md`, `${name}.mdx`];
 
-/** Reads and checks the structure: every section has its directory with an
- * `index.md`, every root page exists, and the content root holds nothing
- * undeclared. */
-export function loadStructure(dataRoot: string = defaultDataRoot): Structure {
-  const structure = parseStructure(
-    JSON.parse(readFileSync(join(dataRoot, "knowledgebase.json"), "utf8")),
-  );
+/** Checks one language's pages against its structure: every section has its
+ * directory with an `index.md`, every root page exists, and nothing
+ * undeclared lies beside them. */
+export function checkStructure(dataRoot: string, structure: Structure): Structure {
   const docs = join(dataRoot, structure.content_root);
+  if (!existsSync(docs)) {
+    throw new Error(
+      `data/v2/${structure.content_root} is missing for language "${structure.language}"`,
+    );
+  }
   for (const page of structure.root_pages) {
     if (!pageFile(page).some((file) => existsSync(join(docs, file)))) {
-      throw new Error(`data/v2: the root page "${page}" has no file ${page}.md`);
+      throw new Error(
+        `data/v2/${structure.content_root}: the root page "${page}" has no ${page}.md`,
+      );
     }
   }
   const declared = new Set([
@@ -154,10 +200,35 @@ export function loadStructure(dataRoot: string = defaultDataRoot): Structure {
   }
   for (const section of structure.sections) {
     if (!existsSync(join(docs, section.directory, "index.md"))) {
-      throw new Error(`data/v2: the section "${section.directory}" has no index.md`);
+      throw new Error(
+        `data/v2/${structure.content_root}: the section "${section.directory}" has no index.md`,
+      );
     }
   }
   return structure;
+}
+
+/** The structure of a language (by default the one the App shows), checked
+ * against the files; `docs/` holds no language the declaration lacks. */
+export function loadStructure(dataRoot: string = defaultDataRoot, language?: Language): Structure {
+  const declaration = loadDeclaration(dataRoot);
+  for (const entry of readdirSync(join(dataRoot, "docs"))) {
+    if (!isLanguage(entry) || !declaration.languages[entry]) {
+      throw new Error(`data/v2/docs/${entry} is not a language declared in knowledgebase.json`);
+    }
+  }
+  const structure = declaration.languages[language ?? declaration.language];
+  if (!structure) throw new Error(`knowledgebase.json declares no language "${language}"`);
+  return checkStructure(dataRoot, structure);
+}
+
+/** The declared languages, the one the App shows first. */
+export function languagesOf(dataRoot: string = defaultDataRoot): Language[] {
+  const declaration = loadDeclaration(dataRoot);
+  return [
+    declaration.language,
+    ...LANGUAGES.filter((l) => l !== declaration.language && declaration.languages[l]),
+  ];
 }
 
 export type SidebarEntry = { slug: string } | { label: string; items: { slug: string }[] };

@@ -2,16 +2,21 @@ import { defineCollection } from "astro:content";
 import { docsSchema } from "@astrojs/starlight/schema";
 import { glob } from "astro/loaders";
 import { z } from "astro/zod";
+import { loadStructure } from "./structure";
 
-// The pages live in data/v2/docs, beside the App generation, so that the
-// content survives a new App generation unchanged. This is Starlight's own
-// docs loader pointed at that directory instead of src/content/docs.
+// The pages live in data/v2/docs/<language>, beside the App generation, so
+// that the content survives a new App generation unchanged. This is
+// Starlight's own docs loader pointed at the pages of the language the App
+// shows (data/v2/knowledgebase.json) instead of src/content/docs.
 //
 // The metadata every page may declare besides Starlight's own (title,
 // description, sidebar). ARCHITECTURE.md describes it; a page that breaks it
 // stops the build.
 const docs = defineCollection({
-  loader: glob({ base: "../../data/v2/docs", pattern: "**/[^_]*.{md,mdx}" }),
+  loader: glob({
+    base: `../../data/v2/${loadStructure().content_root}`,
+    pattern: "**/[^_]*.{md,mdx}",
+  }),
   schema: docsSchema({
     extend: z.object({
       /** draft: being written; current: valid; outdated: kept for history. */

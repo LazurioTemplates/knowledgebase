@@ -1,20 +1,22 @@
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { internalLinks, isSample, linkSlug, type Page, readPages } from "./pages";
-import { loadStructure, NAME, type Structure, sectionOf } from "./structure";
+import { type Language, loadStructure, NAME, type Structure, sectionOf } from "./structure";
 
 // The rules of the content in data/v2 beyond what Astro's schema checks: where
 // a page lives, how it is named, that its links resolve, and the rules of the
-// glossary and the decisions. Each problem is one line that says which page and
-// what to do; the tests expect none. Bun only (see pages.ts).
+// glossary and the decisions. They hold for the pages of each language on
+// their own. Each problem is one line that says which page and what to do;
+// the tests expect none. Bun only (see pages.ts).
 
 const STATUSES = new Set(["draft", "current", "outdated"]);
 const DECISION_FILE = /^\d{4}-[a-z0-9]+(?:-[a-z0-9]+)*\.md$/;
 
 export type Content = Readonly<{ structure: Structure; pages: readonly Page[]; publicDir: string }>;
 
-export function readContent(dataRoot: string): Content {
-  const structure = loadStructure(dataRoot);
+/** The pages of one language (by default the one the App shows). */
+export function readContent(dataRoot: string, language?: Language): Content {
+  const structure = loadStructure(dataRoot, language);
   return {
     structure,
     pages: readPages(join(dataRoot, structure.content_root)),
@@ -35,9 +37,10 @@ export function contentProblems({ structure, pages, publicDir }: Content): strin
   const terms = new Map<string, string>();
 
   for (const page of pages) {
-    const { path, frontmatter: meta } = page;
-    const parts = path.split("/");
-    const file = parts.at(-1) ?? path;
+    const { frontmatter: meta } = page;
+    const path = `${structure.language}/${page.path}`;
+    const parts = page.path.split("/");
+    const file = parts.at(-1) ?? page.path;
 
     if (!isText(meta.title)) problems.push(`${path}: the frontmatter has no title`);
     if (!NAME.test(file.replace(/\.mdx?$/, ""))) {
@@ -61,7 +64,7 @@ export function contentProblems({ structure, pages, publicDir }: Content): strin
 
     for (const target of internalLinks(page.body)) {
       if (!target.startsWith("/")) {
-        problems.push(`${path}: link "${target}" from the site root, for example /slovnik/pojem/`);
+        problems.push(`${path}: link "${target}" from the site root, e.g. /${glossary}/<term>/`);
         continue;
       }
       const slug = linkSlug(target);
@@ -100,7 +103,7 @@ export function contentProblems({ structure, pages, publicDir }: Content): strin
       const aliases = Array.isArray(meta.aliases) ? meta.aliases : [];
       for (const name of [meta.title, ...aliases]) {
         if (!isText(name)) continue;
-        const key = name.trim().toLocaleLowerCase("cs");
+        const key = name.trim().toLocaleLowerCase(structure.language);
         const other = terms.get(key);
         if (other) problems.push(`${path}: the term "${name}" is already in ${other}`);
         else terms.set(key, path);

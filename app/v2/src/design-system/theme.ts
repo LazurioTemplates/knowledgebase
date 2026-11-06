@@ -1,14 +1,17 @@
 // The look of the knowledge base comes from the Organization's design system
 // (LazurioTemplates/design-system and its adoptions), never invented here and
-// never read at run time: `tokens.json` beside this file is a reviewed
-// snapshot of the design system's `content/brand/colors/tokens.json`, and
-// `design-system.lock.json` names its repository, commit and SHA-256.
+// never read at run time: `tokens.json` beside this file is the design
+// system's `content/brand/colors/tokens.json`, copied unchanged by
+// `bun run design-system:sync`, and `lock.json` names its repository, release,
+// commit and SHA-256.
 //
-// This file turns the snapshot into Starlight's CSS custom properties
-// (src/styles/theme.css) and the favicon (data/v2/public/favicon.svg);
-// `bun run theme:write` writes both and the tests fail when they are stale.
-// It reads only what the theme needs: the colour roles of both themes and the
-// two font stacks. The design system's own tests hold the rest of its shape.
+// This file turns the copy into Starlight's CSS custom properties
+// (src/styles/theme.css) and the favicon (data/v2/public/favicon.svg); see
+// generate.ts. It reads only what the theme needs: the colour roles of both
+// themes, the two font stacks and the sizes of the body text and headings.
+// Its reading of the tokens and the contrast ratio are adapted from the
+// design system's `app/v1/src/tokens.ts` (recorded under `adapted` in the
+// lock, so that a sync names it when the source changes).
 
 export const THEMES = ["light", "dark"] as const;
 export type ThemeName = (typeof THEMES)[number];
@@ -40,11 +43,17 @@ export const ROLES = [
 ] as const;
 export type Role = (typeof ROLES)[number];
 
+// The styles of the type scale the theme uses: the body text and the headings.
+export const TYPE_STYLES = ["body", "h1", "h2", "h3", "h4"] as const;
+export type TypeStyle = (typeof TYPE_STYLES)[number];
+
 export type ThemeTokens = Readonly<{
   name: string;
   /** #rrggbb of every role, per theme. */
   themes: Readonly<Record<ThemeName, Readonly<Record<Role, string>>>>;
   fonts: Readonly<{ sans: string; mono: string }>;
+  /** Font size in px of every style the theme uses. */
+  sizes: Readonly<Record<TypeStyle, number>>;
 }>;
 
 const HEX = /^#[0-9a-f]{6}$/i;
@@ -81,16 +90,27 @@ export function parseThemeTokens(value: unknown): ThemeTokens {
     }
     themes[theme] = resolved;
   }
-  const families = object(object(tokens.typography, "tokens.typography").families, "families");
+  const typography = object(tokens.typography, "tokens.typography");
+  const families = object(typography.families, "tokens.typography.families");
   for (const family of ["sans", "mono"] as const) {
     if (typeof families[family] !== "string" || families[family] === "") {
       throw new Error(`tokens.typography.families.${family} must be a font stack`);
     }
   }
+  const scale = object(typography.scale, "tokens.typography.scale");
+  const sizes = {} as Record<TypeStyle, number>;
+  for (const style of TYPE_STYLES) {
+    const size = object(scale[style], `tokens.typography.scale.${style}`).size;
+    if (typeof size !== "number" || !(size > 0)) {
+      throw new Error(`tokens.typography.scale.${style}.size must be a positive number`);
+    }
+    sizes[style] = size;
+  }
   return {
     name: tokens.name,
     themes,
     fonts: { sans: families.sans as string, mono: families.mono as string },
+    sizes,
   };
 }
 
@@ -118,12 +138,15 @@ const starlight = (theme: ThemeName): ReadonlyArray<readonly [string, Role]> => 
   ["--sl-color-accent-high", "accent-text"],
   ["--sl-color-text", "text"],
   ["--sl-color-text-accent", "accent-text"],
-  ["--sl-color-text-invert", "on-accent"],
+  // Text on `text-accent`, as on the current page in the navigation.
+  ["--sl-color-text-invert", "accent-subtle"],
   ["--sl-color-bg", "surface"],
   ["--sl-color-bg-nav", "surface-raised"],
   ["--sl-color-bg-sidebar", "surface"],
   ["--sl-color-bg-inline-code", PANEL[theme]],
   ["--sl-color-bg-accent", "accent"],
+  ["--sl-color-banner-bg", "accent"],
+  ["--sl-color-banner-text", "on-accent"],
   ["--sl-color-hairline-light", "border"],
   ["--sl-color-hairline", "border"],
   ["--sl-color-hairline-shade", PANEL[theme]],
@@ -160,6 +183,8 @@ export const TEXT_PAIRS: ReadonlyArray<readonly [Role, Role]> = [
   ["danger", "danger-subtle"],
 ];
 
+const rem = (px: number) => `${px / 16}rem`;
+
 function block(selector: string, lines: readonly string[]): string {
   return `${selector} {\n${lines.map((line) => `  ${line}`).join("\n")}\n}\n`;
 }
@@ -184,6 +209,10 @@ export function themeStylesheet(tokens: ThemeTokens, source: string): string {
     block(":root", [
       `--sl-font: ${tokens.fonts.sans};`,
       `--sl-font-mono: ${tokens.fonts.mono};`,
+      `--sl-text-base: ${rem(tokens.sizes.body)};`,
+      ...(["h1", "h2", "h3", "h4"] as const).map(
+        (style) => `--sl-text-${style}: ${rem(tokens.sizes[style])};`,
+      ),
       ...variables(tokens, "dark"),
     ]),
     block(':root[data-theme="light"]', variables(tokens, "light")),

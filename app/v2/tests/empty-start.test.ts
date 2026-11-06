@@ -1,63 +1,83 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { cpSync, existsSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join, resolve } from "node:path";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 import { contentProblems, readContent } from "../src/content-check";
+import { languagesOf, loadDeclaration, sectionOf } from "../src/structure";
+import { appDir, copyData, dataDir, remove } from "./support/copy";
 
-// The empty start (`bun run start:empty`) on a copy of data/v2: the examples
-// go, the structure stays and still holds every rule.
-const app = resolve(import.meta.dir, "..");
-const dataRoot = resolve(app, "../../data/v2");
-const script = join(app, "src/cli/empty-start.ts");
+// The starts on a copy of data/v2: the empty start removes the examples in
+// every language and keeps a structure that holds every rule; the language
+// start keeps one language and removes the others.
 let copy = "";
-
-function freshCopy(): string {
-  // realpathSync.native: on Windows tmpdir() may be an 8.3 short path.
-  copy = mkdtempSync(join(realpathSync.native(tmpdir()), "kb-empty-start-"));
-  cpSync(dataRoot, copy, { recursive: true });
-  return copy;
-}
-
-function run(...args: string[]) {
-  return Bun.spawnSync([process.execPath, script, ...args], { stdout: "pipe", stderr: "pipe" });
-}
-
 afterEach(() => {
-  if (copy) rmSync(copy, { recursive: true, force: true });
+  remove(copy);
   copy = "";
 });
 
+function run(script: string, ...args: string[]) {
+  return Bun.spawnSync([process.execPath, join(appDir, "src/cli", script), ...args], {
+    stdout: "pipe",
+    stderr: "pipe",
+  });
+}
+
 describe("empty start", () => {
-  test("removes every example and keeps a structure that holds", () => {
-    const data = freshCopy();
-    const before = readContent(data).pages.filter((page) => page.frontmatter.sample === true);
-    const result = run("--data", data);
+  test("removes every example in every language and keeps a structure that holds", () => {
+    copy = copyData();
+    const result = run("empty-start.ts", "--data", copy);
     expect(result.exitCode, result.stderr.toString()).toBe(0);
-    const after = readContent(data);
-    expect(after.pages.filter((page) => page.frontmatter.sample === true)).toEqual([]);
-    for (const page of before) expect(existsSync(join(data, "docs", page.path))).toBe(false);
-    for (const section of after.structure.sections) {
-      expect(existsSync(join(data, "docs", section.directory, "index.md"))).toBe(true);
+    for (const language of languagesOf(copy)) {
+      const after = readContent(copy, language);
+      expect(after.pages.filter((page) => page.frontmatter.sample === true)).toEqual([]);
+      for (const section of after.structure.sections) {
+        expect(
+          existsSync(join(copy, after.structure.content_root, section.directory, "index.md")),
+        ).toBe(true);
+      }
+      expect(contentProblems(after)).toEqual([]);
     }
-    expect(contentProblems(after)).toEqual([]);
   });
 
   test("a dry run removes nothing", () => {
-    const data = freshCopy();
-    const before = readContent(data).pages.length;
-    expect(run("--data", data, "--dry-run").exitCode).toBe(0);
-    expect(readContent(data).pages.length).toBe(before);
+    copy = copyData();
+    const before = readContent(copy).pages.length;
+    expect(run("empty-start.ts", "--data", copy, "--dry-run").exitCode).toBe(0);
+    expect(readContent(copy).pages.length).toBe(before);
   });
 
   test("refuses while an own page links to an example", () => {
-    const data = freshCopy();
-    const sample = readContent(data).pages.find((page) => page.frontmatter.sample === true);
+    copy = copyData();
+    const content = readContent(copy);
+    const sample = content.pages.find((page) => page.frontmatter.sample === true);
     if (!sample) return;
-    const own = join(data, "docs", "procesy", "vlastni-postup.md");
-    writeFileSync(own, `---\ntitle: Vlastní postup\n---\n\nViz [ukázka](/${sample.slug}/).\n`);
-    const result = run("--data", data);
+    const processes = sectionOf(content.structure, "processes").directory;
+    const own = join(copy, content.structure.content_root, processes, "own-procedure.md");
+    writeFileSync(own, `---\ntitle: Own\n---\n\nSee [the example](/${sample.slug}/).\n`);
+    const result = run("empty-start.ts", "--data", copy);
     expect(result.exitCode).toBe(1);
-    expect(result.stderr.toString()).toContain("procesy/vlastni-postup.md");
-    expect(existsSync(join(data, "docs", sample.path))).toBe(true);
+    expect(result.stderr.toString()).toContain(`${processes}/own-procedure.md`);
+    expect(existsSync(join(copy, content.structure.content_root, sample.path))).toBe(true);
+  });
+});
+
+describe("language start", () => {
+  for (const language of languagesOf(dataDir)) {
+    test(`keeps ${language} only, and the knowledge base shows it`, () => {
+      copy = copyData();
+      const others = languagesOf(copy).filter((other) => other !== language);
+      const result = run("start-language.ts", language, "--data", copy);
+      expect(result.exitCode, result.stderr.toString()).toBe(0);
+      const declaration = loadDeclaration(copy);
+      expect(declaration.language).toBe(language);
+      expect(Object.keys(declaration.languages)).toEqual([language]);
+      for (const other of others) expect(existsSync(join(copy, "docs", other))).toBe(false);
+      expect(contentProblems(readContent(copy))).toEqual([]);
+      expect(readFileSync(join(copy, "knowledgebase.json"), "utf8")).toEndWith("}\n");
+    });
+  }
+
+  test("refuses a language Lazurio does not have", () => {
+    copy = copyData();
+    expect(run("start-language.ts", "de", "--data", copy).exitCode).toBe(2);
   });
 });

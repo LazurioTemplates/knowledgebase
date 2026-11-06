@@ -1,6 +1,6 @@
 ---
 name: knowledgebase-record-decision
-description: "Use when the person tells you that something was decided or asks you to record a decision (\"zapiš rozhodnutí\", \"rozhodli jsme, že…\", \"od teď platí…\"). Writes a numbered decision page with who decided, when, why and what follows, marks the decision it replaces as outdated, in a pull request of the knowledge base."
+description: "Use when the person tells you that something was decided or asks you to record a decision (\"record the decision\", \"we decided that…\", \"from now on…\", \"zapiš rozhodnutí\", \"rozhodli jsme, že…\", \"od teď platí…\"). Writes a numbered decision page with who decided, when, why and what follows, marks the decision it replaces as outdated, in a pull request of the knowledge base."
 ---
 
 # Record a decision
@@ -11,7 +11,8 @@ considered. Decisions are never deleted; a newer one replaces an older one.
 
 ## When to use
 
-- "Zapiš rozhodnutí…", "rozhodli jsme, že…", "od teď platí…".
+- "Record the decision…", "we decided that…", "from now on…",
+  "zapiš rozhodnutí…", "rozhodli jsme, že…", "od teď platí…".
 - A conversation ends with a decision that changes how the Organization
   works, what it offers or who may do what.
 
@@ -19,21 +20,25 @@ considered. Decisions are never deleted; a newer one replaces an older one.
 
 1. Work in a task worktree of this module: one change, one branch, one pull
    request.
-2. Search the section of kind `decisions` (see `data/v2/knowledgebase.json`)
+2. Search the section of kind `decisions` of the knowledge base's language
+   (`data/v2/knowledgebase.json`, pages in `data/v2/docs/<language>/`)
    and the rest of the knowledge base with `knowledgebase-search`: an earlier
    decision on the same subject, and the pages the decision changes.
 3. Make sure it is a decision: who decided and when. Record only what the
    person who decides has decided. A proposal still under discussion is
    written with `status: draft` and no `decided`; never present it as decided.
 4. Number it: the highest four-digit number in the section plus one. The file
-   is `<number>-<short-name>.md` (`0002-nabidky-schvaluje-vedeni.md`).
+   is `<number>-<short-name>.md` (`0002-nabidky-schvaluje-vedeni.md`,
+   `0002-quotes-are-approved-by-management.md`).
 5. Write the page from the outline in the section's `index.md`:
    - `title`: the number and the decision in one sentence;
    - `description`, `status: current`, `decided` (the date of the decision,
      `YYYY-MM-DD`, not the date you write it down), `decided_by` (the role or
      name of who decided);
-   - "Souvislosti", "Rozhodnutí", "Důsledky", "Zvažované možnosti", in the
-     person's words; ask for the reasons when you do not know them.
+   - the headings of the outline ("Souvislosti", "Rozhodnutí", "Důsledky",
+     "Zvažované možnosti"; in English "Context", "Decision", "Consequences",
+     "Options considered"), in the person's words; ask for the reasons when
+     you do not know them.
 6. When it replaces an earlier decision: in the earlier page set
    `status: outdated` and `superseded_by: <decisions directory>/<new file
    without .md>`, and leave its text as it was.

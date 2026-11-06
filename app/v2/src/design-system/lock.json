@@ -1,0 +1,19 @@
+{
+  "source": "https://github.com/LazurioTemplates/design-system",
+  "ref": "v1.0.0",
+  "commit": "fc64dc06b563587b215481c9d54b41f0d045aba8",
+  "copied": [
+    {
+      "from": "content/brand/colors/tokens.json",
+      "to": "src/design-system/tokens.json",
+      "sha256": "e3043e9ee5d7af9f07c9e7b25051f9cfa1040040b0edc836695da7a94d55e18e"
+    }
+  ],
+  "adapted": [
+    {
+      "from": "app/v1/src/tokens.ts",
+      "to": "src/design-system/theme.ts",
+      "sourceSha256": "c4204be7dce529f332d6bb5825ffcd1a3f0b2a2a11893b24f8402756df18ec84"
+    }
+  ]
+}

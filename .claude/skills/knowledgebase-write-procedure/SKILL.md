@@ -1,6 +1,6 @@
 ---
 name: knowledgebase-write-procedure
-description: "Use when the person asks you to write down how something is done or to change a written procedure (\"zapiš postup\", \"sepiš, jak se dělá…\", \"udělej z toho návod\", \"tohle dělej vždycky takhle\"). Writes or updates one page in the section for people (processes) or for agents (agent procedures) of the knowledge base, in a pull request."
+description: "Use when the person asks you to write down how something is done or to change a written procedure (\"write down the procedure\", \"write up how we…\", \"zapiš postup\", \"sepiš, jak se dělá…\", \"tohle dělej vždycky takhle\"). Writes or updates one page in the section for people (processes) or for agents (agent procedures) of the knowledge base, in a pull request."
 ---
 
 # Write a procedure
@@ -11,7 +11,8 @@ steps that say who does what and what comes out of it.
 
 ## When to use
 
-- "Zapiš postup…", "sepiš, jak se dělá…", "tohle dělej příště takhle".
+- "Write down the procedure…", "write up how we…", "zapiš postup…",
+  "sepiš, jak se dělá…", "tohle dělej příště takhle".
 - A procedure changed and its page no longer matches what people do.
 
 ## Steps
@@ -20,7 +21,9 @@ steps that say who does what and what comes out of it.
    request. The primary checkout stays on `main`.
 2. Search first with the skill `knowledgebase-search`. When a page about the
    procedure exists, update it instead of writing a second one.
-3. Choose the section by its kind in `data/v2/knowledgebase.json`:
+3. Choose the section by its kind in `data/v2/knowledgebase.json`
+   (`languages.<language>.sections` of the knowledge base's `language`); the
+   page goes to `data/v2/docs/<language>/<section>/`:
    - `processes` when people do the work;
    - `agent-procedures` when an agent does it: what it works with, its steps,
      what it never does on its own and how it checks the result.
@@ -31,15 +34,15 @@ steps that say who does what and what comes out of it.
    part, the steps, the checklist. Take it from what the person said and
    from the sources they point to. Ask only for what you cannot find, one
    question at a time. Never invent a step, a role, an amount or a deadline.
-5. Write the page from the outline:
+5. Write the page from the outline, in the knowledge base's language:
    - the file name is the title in lowercase ASCII words joined by hyphens
-     (`jak-prijimame-noveho-kolegu.md`);
+     (`jak-prijimame-noveho-kolegu.md`, `welcoming-a-new-colleague.md`);
    - frontmatter `title`, `description`, `owner`, `reviewed` (today, from
      `date -u +%F`) and `sources` (where the procedure comes from);
    - `status: draft` until the person confirms that this is how the work is
      done, then `status: current`;
    - the main point in the first paragraph; numbered steps; links from the
-     site root (`/slovnik/pojem/`).
+     site root (`/<glossary directory>/<term>/`).
 6. Link each term that has a glossary page. A term that needs one gets it
    with the skill `knowledgebase-add-term`.
 7. In `app/v2` run `bun run check`. The content rules name every problem

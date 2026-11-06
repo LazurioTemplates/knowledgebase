@@ -1,54 +1,95 @@
 import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 
-// design-system.lock.json: where the snapshot of the design system's tokens
-// comes from. The snapshot is never edited by hand; a refresh replaces it and
-// the lock together (`bun run design-system:refresh <checkout>`).
-export type DesignSystemLock = Readonly<{
-  schema_version: "lazurio.knowledgebase.design-system-lock.v1";
-  /** owner/name on GitHub of the design system the snapshot comes from. */
-  repository: string;
-  /** The release tag of the commit, or null when the commit has none. */
-  ref: string | null;
+// The knowledge base takes its look from a design system as a reviewed copy
+// with a lock, never by reading another repository at run time (Lazurio Module
+// Standard, Boundaries; LazurioTemplates/design-system, docs/extending.md).
+// src/design-system/lock.json names the design system's repository, the
+// release and its commit, the files copied unchanged with their SHA-256, and
+// the files the knowledge base adapted as its own code with the SHA-256 of
+// their source, so that a sync shows which of them changed. The shape is the
+// one the other Marketplace templates built on the design system use.
+
+export type CopiedFile = { from: string; to: string; sha256: string };
+export type AdaptedFile = { from: string; to: string; sourceSha256: string };
+export type DesignSystemLock = {
+  source: string;
+  ref: string;
   commit: string;
-  /** The tokens file in the design system's repository. */
-  path: string;
-  /** The snapshot beside the lock. */
-  snapshot: "tokens.json";
-  sha256: string;
-}>;
+  copied: CopiedFile[];
+  adapted: AdaptedFile[];
+};
 
-const REPOSITORY = /^[A-Za-z0-9][A-Za-z0-9-]*\/[A-Za-z0-9._-]+$/;
+export const LOCK_PATH = "src/design-system/lock.json";
+export const TOKENS_FROM = "content/brand/colors/tokens.json";
+const REPOSITORY = /^https:\/\/github\.com\/[A-Za-z0-9-]+\/[A-Za-z0-9._-]+$/;
+const COMMIT = /^[0-9a-f]{40}$/;
+const SHA256 = /^[0-9a-f]{64}$/;
+// A path inside a repository or the App: forward slashes, no way out of it.
+const PATH = /^(?!\/)(?!.*(?:^|\/)\.\.?(?:\/|$))[A-Za-z0-9._/-]+$/;
+
+export const sha256 = (bytes: Uint8Array | string): string =>
+  createHash("sha256").update(bytes).digest("hex");
 
 export function parseLock(value: unknown): DesignSystemLock {
-  if (typeof value !== "object" || value === null) throw new Error("lock must be an object");
+  const fail = (message: string): never => {
+    throw new Error(`${LOCK_PATH}: ${message}`);
+  };
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    return fail("must be an object");
+  }
   const lock = value as Record<string, unknown>;
-  if (lock.schema_version !== "lazurio.knowledgebase.design-system-lock.v1") {
-    throw new Error("lock.schema_version is not lazurio.knowledgebase.design-system-lock.v1");
+  if (Object.keys(lock).sort().join(",") !== "adapted,commit,copied,ref,source") {
+    fail("has exactly source, ref, commit, copied and adapted");
   }
-  if (typeof lock.repository !== "string" || !REPOSITORY.test(lock.repository)) {
-    throw new Error("lock.repository must be owner/name");
+  if (typeof lock.source !== "string" || !REPOSITORY.test(lock.source)) {
+    fail("source is https://github.com/<owner>/<repository>");
   }
-  if (lock.ref !== null && (typeof lock.ref !== "string" || lock.ref === "")) {
-    throw new Error("lock.ref must be a tag or null");
+  if (typeof lock.ref !== "string" || lock.ref.length === 0) fail("ref names a tag or commit");
+  if (typeof lock.commit !== "string" || !COMMIT.test(lock.commit)) {
+    fail("commit is a full 40-character commit");
   }
-  if (typeof lock.commit !== "string" || !/^[0-9a-f]{40}$/.test(lock.commit)) {
-    throw new Error("lock.commit must be a full commit");
+  const files = (name: "copied" | "adapted", hash: "sha256" | "sourceSha256") => {
+    const list = lock[name];
+    if (!Array.isArray(list)) return fail(`${name} is a list`);
+    for (const [index, file] of list.entries()) {
+      const f = (file ?? {}) as Record<string, unknown>;
+      const valid =
+        typeof f.from === "string" &&
+        PATH.test(f.from) &&
+        typeof f.to === "string" &&
+        PATH.test(f.to) &&
+        typeof f[hash] === "string" &&
+        SHA256.test(f[hash] as string) &&
+        Object.keys(f).length === 3;
+      if (!valid) fail(`${name}[${index}] has from, to (relative paths) and ${hash} (SHA-256)`);
+    }
+    return list;
+  };
+  const copied = files("copied", "sha256") as CopiedFile[];
+  if (!copied.some((file) => file.from === TOKENS_FROM)) {
+    fail(`copied names the design system's ${TOKENS_FROM}`);
   }
-  if (typeof lock.path !== "string" || !lock.path.endsWith(".json")) {
-    throw new Error("lock.path must name the tokens file");
-  }
-  if (lock.snapshot !== "tokens.json") throw new Error("lock.snapshot must be tokens.json");
-  if (typeof lock.sha256 !== "string" || !/^[0-9a-f]{64}$/.test(lock.sha256)) {
-    throw new Error("lock.sha256 must be a SHA-256 in hex");
-  }
-  return lock as DesignSystemLock;
+  return {
+    source: lock.source as string,
+    ref: lock.ref as string,
+    commit: lock.commit as string,
+    copied,
+    adapted: files("adapted", "sourceSha256") as AdaptedFile[],
+  };
 }
 
-export function sha256(bytes: Uint8Array | string): string {
-  return createHash("sha256").update(bytes).digest("hex");
+export function readLock(app: string): DesignSystemLock {
+  return parseLock(JSON.parse(readFileSync(join(app, LOCK_PATH), "utf8")));
+}
+
+/** The App's copy of the tokens, as the lock names it. */
+export function tokensCopy(lock: DesignSystemLock): CopiedFile {
+  return lock.copied.find((file) => file.from === TOKENS_FROM) as CopiedFile;
 }
 
 /** How the generated files name their source. */
 export function describeSource(lock: DesignSystemLock): string {
-  return `${lock.repository} ${lock.ref ?? lock.commit.slice(0, 12)}, ${lock.path}`;
+  return `${lock.source.replace("https://github.com/", "")} ${lock.ref}, ${TOKENS_FROM}`;
 }
