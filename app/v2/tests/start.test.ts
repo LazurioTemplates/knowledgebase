@@ -13,7 +13,12 @@ const runtime = packageJson.lazurio.runtime;
 const [entrypoint] = runtime.listeners;
 if (!entrypoint) throw new Error("lazurio.runtime declares no listener");
 const variable = `LAZURIO_RUNTIME_LISTENER_${entrypoint.id.toUpperCase().replaceAll("-", "_")}`;
-const baseEnv = { HOME: process.env.HOME ?? "", PATH: dirname(process.execPath) };
+const baseEnv = {
+  HOME: process.env.HOME ?? "",
+  PATH: dirname(process.execPath),
+  // Windows needs its system root to start a process at all.
+  ...(process.env.SYSTEMROOT ? { SYSTEMROOT: process.env.SYSTEMROOT } : {}),
+};
 const startTimeoutMs = 60_000;
 
 describe("start contract", () => {

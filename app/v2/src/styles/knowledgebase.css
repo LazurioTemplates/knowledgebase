@@ -1,0 +1,53 @@
+/*
+ * The layout of the knowledge base on top of Starlight. Colours and fonts come
+ * only from theme.css (the design system snapshot); this file names Starlight's
+ * properties, never a colour of its own.
+ */
+
+:root {
+  --sl-content-width: 50rem;
+  --sl-sidebar-width: 19rem;
+  --sl-text-base: 1rem;
+  --sl-line-height-headings: 1.25;
+}
+
+h1,
+h2,
+h3 {
+  letter-spacing: 0;
+}
+
+:root header.header {
+  border-bottom: 1px solid var(--sl-color-hairline);
+}
+
+.sl-markdown-content :is(p, li) {
+  line-height: 1.65;
+}
+
+.sl-markdown-content code:not(pre code) {
+  border-radius: 0.25rem;
+  padding: 0.1rem 0.3rem;
+}
+
+:focus-visible {
+  outline-color: var(--kb-focus);
+}
+
+/* The page's metadata under its title (src/components/PageTitle.astro). */
+.kb-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.25rem;
+  margin-top: 0.75rem;
+  color: var(--sl-color-gray-3);
+  font-size: var(--sl-text-sm);
+}
+
+.kb-meta__fact--draft {
+  color: var(--sl-color-orange-high);
+}
+
+.kb-meta__fact--outdated {
+  color: var(--sl-color-red-high);
+}

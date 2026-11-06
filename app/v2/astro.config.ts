@@ -1,6 +1,8 @@
+import { fileURLToPath } from "node:url";
 import starlight from "@astrojs/starlight";
 import { astroServerOptions, ModuleKitError, onShutdown } from "@lazurio/module-kit";
 import { defineConfig } from "astro/config";
+import { loadStructure, sidebarOf } from "./src/structure";
 
 const LISTENER = "app";
 
@@ -22,8 +24,14 @@ function listenerServer(): ReturnType<typeof astroServerOptions> {
 // SIGTERM from the Launchpad ends the dev server with exit 0 (standard 4.4).
 if (serving) onShutdown(() => undefined);
 
+// The content lies beside the App in data/v2 with its declared structure; a
+// structure that does not hold stops here, before anything is built.
+const structure = loadStructure();
+
 export default defineConfig({
   ...(serving ? { server: listenerServer() } : {}),
+  // Files the pages link to (images, PDFs) live next to the pages in data/v2.
+  publicDir: fileURLToPath(new URL("../../data/v2/public", import.meta.url)),
   vite: {
     // No .env* files on the start path (standard 4.3).
     envDir: false,
@@ -33,10 +41,15 @@ export default defineConfig({
   integrations: [
     starlight({
       title: "Knowledgebase",
-      // One locale: the root page answers 200 itself; a locale redirect on the
-      // health path would count as unhealthy (the probe does not follow it).
-      locales: { root: { label: "Čeština", lang: "cs" } },
-      sidebar: [{ label: "Úvod", slug: "index" }],
+      favicon: "/favicon.svg",
+      // One locale at the root: the index answers 200 itself, which the
+      // Launchpad health probe needs (it does not follow redirects).
+      locales: { root: { label: "Čeština", lang: structure.language } },
+      sidebar: sidebarOf(structure),
+      routeMiddleware: "./src/routeData.ts",
+      components: { PageTitle: "./src/components/PageTitle.astro" },
+      // The look of the design system (src/design-system/), then the layout.
+      customCss: ["./src/styles/theme.css", "./src/styles/knowledgebase.css"],
     }),
   ],
 });

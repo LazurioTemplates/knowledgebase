@@ -1,0 +1,24 @@
+---
+// The page title of Starlight, followed by the page's metadata in words:
+// whether it is valid, who keeps it true, when it was last confirmed, and for
+// a decision who made it and when. Pages without metadata look as before.
+import Default from "@astrojs/starlight/components/PageTitle.astro";
+import { describePage } from "../meta";
+
+const route = Astro.locals.starlightRoute;
+const facts = describePage(route.entry.data, (id) => `/${id}/`);
+---
+
+<Default />
+{
+  facts.length > 0 && (
+    <p class="kb-meta">
+      {facts.map((fact) => (
+        <span class:list={["kb-meta__fact", fact.tone && `kb-meta__fact--${fact.tone}`]}>
+          {fact.label}:{" "}
+          {fact.href ? <a href={fact.href}>{fact.value}</a> : fact.value}
+        </span>
+      ))}
+    </p>
+  )
+}

@@ -1,0 +1,9 @@
+{
+  "schema_version": "lazurio.knowledgebase.design-system-lock.v1",
+  "repository": "LazurioTemplates/design-system",
+  "ref": "v1.0.0",
+  "commit": "fc64dc06b563587b215481c9d54b41f0d045aba8",
+  "path": "content/brand/colors/tokens.json",
+  "snapshot": "tokens.json",
+  "sha256": "e3043e9ee5d7af9f07c9e7b25051f9cfa1040040b0edc836695da7a94d55e18e"
+}
