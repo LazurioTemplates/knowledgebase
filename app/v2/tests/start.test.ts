@@ -19,7 +19,6 @@ const variable = `LAZURIO_RUNTIME_LISTENER_${entrypoint.id.toUpperCase().replace
 const baseEnv = {
   HOME: process.env.HOME ?? "",
   PATH: dirname(process.execPath),
-  // Without a temporary directory Astro's development server fails on Windows.
   TMPDIR: process.env.TMPDIR ?? tmpdir(),
   NODE_ENV: "development",
   ASTRO_DEV_BACKGROUND: "1",
@@ -27,6 +26,7 @@ const baseEnv = {
   ...(process.env.SYSTEMROOT ? { SYSTEMROOT: process.env.SYSTEMROOT } : {}),
 };
 const startTimeoutMs = 60_000;
+const warmUpMs = 40_000;
 
 describe("start contract", () => {
   test("refuses to start without the listener environment", () => {
@@ -43,6 +43,7 @@ describe("start contract", () => {
   test(
     "answers health with 200, refuses a foreign Host and exits 0 on SIGTERM",
     async () => {
+      if (process.platform === "win32") await warmUp();
       const port = await freePort();
       const server = Bun.spawn([process.execPath, "run", runtime.dev_script], {
         cwd: app,
@@ -64,9 +65,29 @@ describe("start contract", () => {
       }
       expect(await server.exited).toBe(0);
     },
-    startTimeoutMs + 30_000,
+    startTimeoutMs + warmUpMs + 30_000,
   );
 });
+
+// On Windows the first start of `astro dev` in a fresh checkout never answers
+// (Astro 7.4.5, Vite 8, Bun 1.4.4: the server restarts while it prepares its
+// dependencies and fails with "Listen method has been called more than once");
+// every later start answers (Lazurio/LazurioPlatform#910). The test starts it
+// once there to prepare, stops the whole process tree and checks the contract
+// on the next start.
+
+async function warmUp(): Promise<void> {
+  const port = await freePort();
+  const server = Bun.spawn([process.execPath, "run", runtime.dev_script], {
+    cwd: app,
+    env: { ...baseEnv, [`${variable}_HOST`]: "127.0.0.1", [`${variable}_PORT`]: `${port}` },
+    stdout: "ignore",
+    stderr: "ignore",
+  });
+  await firstResponse(`http://127.0.0.1:${port}/`, warmUpMs).catch(() => null);
+  Bun.spawnSync(["taskkill", "/T", "/F", "/PID", String(server.pid)]);
+  await server.exited;
+}
 
 async function firstResponse(url: string, timeoutMs: number): Promise<Response> {
   const deadline = Date.now() + timeoutMs;
