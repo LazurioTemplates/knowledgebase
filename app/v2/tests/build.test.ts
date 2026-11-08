@@ -1,4 +1,4 @@
-import { afterAll, describe, expect, test } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { existsSync, readFileSync, rmSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
@@ -20,10 +20,6 @@ const runtime = packageJson.lazurio.runtime;
 const [entrypoint] = runtime.listeners;
 if (!entrypoint) throw new Error("lazurio.runtime declares no listener");
 const buildTimeoutMs = 180_000;
-const copies: string[] = [];
-afterAll(() => {
-  for (const copy of copies) remove(copy);
-});
 
 // Astro escapes text the way its escapeHTML does: & < > " and '.
 const escapeHtml = (text: string) =>
@@ -103,10 +99,15 @@ describe("build contract", () => {
       `${language}: builds once it is the language shown, every page in it`,
       () => {
         const copy = copyModule(language);
-        copies.push(copy.root);
-        const { exitCode, output } = build(copy.app);
-        expect(exitCode).toBe(0);
-        expectLanguage(output, copy.data, language);
+        // Removed within the test: on Windows deleting the copy's installed
+        // dependencies takes longer than a hook's five seconds.
+        try {
+          const { exitCode, output } = build(copy.app);
+          expect(exitCode).toBe(0);
+          expectLanguage(output, copy.data, language);
+        } finally {
+          remove(copy.root);
+        }
       },
       buildTimeoutMs,
     );
