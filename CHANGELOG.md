@@ -22,9 +22,10 @@ of Lazurio.
 - Two starts: the invented Organization Example with one page in every
   section, each marked by a banner, or an empty start that keeps only the
   structure (`bun run start:empty`).
-- Under the title of a page its metadata in words: whether it is valid, who
-  keeps it true, when it was last confirmed, other names of a term, and for a
-  decision who decided, when, and what replaced it.
+- Under the title of a page its description, then its other details in
+  words: whether it is valid, who keeps it true, when it was last confirmed,
+  other names of a term, its sources, and for a decision who decided, when,
+  and what replaced it.
 - Search across all pages, including the other names of terms.
 - The look of the Organization's design system, light and dark.
 
@@ -46,9 +47,9 @@ of Lazurio.
   `knowledgebase-write-procedure`, `knowledgebase-record-decision`,
   `knowledgebase-add-term`.
 - **Content rules** that name the page and what to do: placement and file
-  names, links that resolve, no link from own content to an example,
-  numbered decisions with date and author, replaced decisions marked
-  outdated, no term defined twice.
+  names, links that resolve (inline, reference and HTML links alike), no
+  link from own content to an example, numbered decisions with date and
+  author, replaced decisions marked outdated, no term defined twice.
 - **Design system as a locked copy**: the tokens of
   `LazurioTemplates/design-system` v1.0.0, copied unchanged, with a lock
   (source, release, commit, SHA-256 of the copied file and of the adapted

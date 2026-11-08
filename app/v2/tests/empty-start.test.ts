@@ -45,19 +45,25 @@ describe("empty start", () => {
     expect(readContent(copy).pages.length).toBe(before);
   });
 
-  test("refuses while an own page links to an example", () => {
-    copy = copyData();
-    const content = readContent(copy);
-    const sample = content.pages.find((page) => page.frontmatter.sample === true);
-    if (!sample) return;
-    const processes = sectionOf(content.structure, "processes").directory;
-    const own = join(copy, content.structure.content_root, processes, "own-procedure.md");
-    writeFileSync(own, `---\ntitle: Own\n---\n\nSee [the example](/${sample.slug}/).\n`);
-    const result = run("empty-start.ts", "--data", copy);
-    expect(result.exitCode).toBe(1);
-    expect(result.stderr.toString()).toContain(`${processes}/own-procedure.md`);
-    expect(existsSync(join(copy, content.structure.content_root, sample.path))).toBe(true);
-  });
+  for (const [form, link] of [
+    ["an inline link", (slug: string) => `See [the example](/${slug}/).`],
+    ["a reference link", (slug: string) => `See [the example][ex].\n\n[ex]: /${slug}/`],
+    ["an HTML link", (slug: string) => `See <a href="/${slug}/">the example</a>.`],
+  ] as const) {
+    test(`refuses while an own page links to an example by ${form}`, () => {
+      copy = copyData();
+      const content = readContent(copy);
+      const sample = content.pages.find((page) => page.frontmatter.sample === true);
+      if (!sample) return;
+      const processes = sectionOf(content.structure, "processes").directory;
+      const own = join(copy, content.structure.content_root, processes, "own-procedure.md");
+      writeFileSync(own, `---\ntitle: Own\n---\n\n${link(sample.slug)}\n`);
+      const result = run("empty-start.ts", "--data", copy);
+      expect(result.exitCode).toBe(1);
+      expect(result.stderr.toString()).toContain(`${processes}/own-procedure.md`);
+      expect(existsSync(join(copy, content.structure.content_root, sample.path))).toBe(true);
+    });
+  }
 });
 
 describe("language start", () => {

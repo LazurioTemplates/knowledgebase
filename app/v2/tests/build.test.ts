@@ -25,6 +25,15 @@ afterAll(() => {
   for (const copy of copies) remove(copy);
 });
 
+// Astro escapes text the way its escapeHTML does: & < > " and '.
+const escapeHtml = (text: string) =>
+  text
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+
 const isFile = (path: string) => statSync(path, { throwIfNoEntry: false })?.isFile() ?? false;
 
 function build(app: string) {
@@ -56,6 +65,15 @@ function expectLanguage(output: string, data: string, language: Language) {
     const html = readFileSync(file, "utf8");
     expect(html, page.path).toContain(`<html lang="${language}"`);
     expect(html.includes(banner), page.path).toBe(page.frontmatter.sample === true);
+    // The details the guide promises under the title: the description and
+    // the sources among them.
+    const { description, sources } = page.frontmatter;
+    if (typeof description === "string") {
+      expect(html, page.path).toContain(`<p class="kb-description">${escapeHtml(description)}</p>`);
+    }
+    for (const source of Array.isArray(sources) ? sources : []) {
+      expect(html, page.path).toContain(escapeHtml(String(source)));
+    }
   }
   expect(existsSync(join(output, "pagefind"))).toBe(true);
   expect(isFile(join(output, "404.html"))).toBe(true);

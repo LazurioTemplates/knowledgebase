@@ -47,7 +47,7 @@ required.
 | Detail | Meaning |
 | --- | --- |
 | `title` | The page's title. Required. |
-| `description` | One sentence about what the page holds. Shown in search results. |
+| `description` | One sentence about what the page holds. Shown right under the title. |
 | `status` | `draft` (being written, not valid yet), `current` (valid), `outdated` (kept for history). |
 | `owner` | The role or person who keeps the page true. |
 | `reviewed` | The date someone last confirmed the page against reality, as `2026-11-06`. |
@@ -57,8 +57,12 @@ required.
 | `superseded_by` | For a decision that is no longer valid: the path of the decision that replaced it, for example `decisions/0002-new-procedure`. |
 | `sample` | `true` on an example page of the template. The empty start removes it. |
 
-The details are shown under the page's title. A page with a wrong detail is
-not built, and the check points it out before the change reaches people.
+The title is the page's heading and the description the line under it. The
+other details stand under the description: the status, who keeps the page
+true, when it was last reviewed, other names, sources, and for a decision who
+decided, when and what replaced it. An example page also has the "Example"
+banner at the top. A page with a wrong detail is not built, and the check
+points it out before the change reaches people.
 
 ## How the content changes
 

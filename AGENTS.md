@@ -106,8 +106,11 @@ stay publishable:
 cd app/v2
 bun install --frozen-lockfile
 bun run check      # astro check, Biome and every test, the build included
-lazurio module setup <path to the module> --root <Lazurio Folder> --json
 ```
 
-The expected `module setup` status is `current`. When a content rule fails,
-the test names the page and what to do.
+When a content rule fails, the test names the page and what to do. In the
+Organization, once the change is merged and the module is checked out on
+`main`, Lazurio runs it as its build:
+`lazurio module build <Organization>/<module> --json` builds the commit and
+`lazurio module start <Organization>/<module> --json` returns `runtime.url`;
+`lazurio module status` and `lazurio module logs` say why when it does not.

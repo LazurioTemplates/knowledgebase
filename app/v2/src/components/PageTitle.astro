@@ -1,17 +1,21 @@
 ---
-// The page title of Starlight, followed by the page's metadata in words:
-// whether it is valid, who keeps it true, when it was last confirmed, and for
-// a decision who made it and when. Pages without metadata look as before.
-// Search indexes only the other names of a term (`Také`), so that results
-// show the text of a page, not its metadata.
+// The page title of Starlight, then the page's description as the line under
+// it, then the page's other details in words: whether it is valid, who keeps
+// it true, when it was last confirmed, other names, sources, and for a
+// decision who made it, when and what replaced it. A page without them looks
+// as Starlight draws it. Search indexes the description and the other names of
+// a term (`Také`, `Also`), so that results show the text of a page, not the
+// rest of its details.
 import Default from "@astrojs/starlight/components/PageTitle.astro";
 import { describePage } from "../meta";
 
 const route = Astro.locals.starlightRoute;
+const { description } = route.entry.data;
 const facts = describePage(route.entry.data, route.lang, (id) => `/${id}/`);
 ---
 
 <Default />
+{description && <p class="kb-description">{description}</p>}
 {
   facts.length > 0 && (
     <p class="kb-meta">
@@ -22,7 +26,16 @@ const facts = describePage(route.entry.data, route.lang, (id) => `/${id}/`);
             data-pagefind-ignore={fact.indexed ? undefined : true}
           >
             {fact.label}:{" "}
-            {fact.href ? <a href={fact.href}>{fact.value}</a> : fact.value}
+            {fact.parts
+              ? fact.parts.map((part, i) => (
+                  <>
+                    {i > 0 && "; "}
+                    {part.href ? <a href={part.href}>{part.text}</a> : part.text}
+                  </>
+                ))
+              : fact.href
+                ? <a href={fact.href}>{fact.value}</a>
+                : fact.value}
           </span>{" "}
         </>
       ))}

@@ -46,7 +46,7 @@ Na začátku každé stránky je hlavička mezi řádky `---`. Povinný je jen n
 | Údaj | Co znamená |
 | --- | --- |
 | `title` | Název stránky. Povinný. |
-| `description` | Jedna věta o tom, co na stránce najdete. Ukazuje se ve výsledcích hledání. |
+| `description` | Jedna věta o tom, co na stránce najdete. Ukazuje se hned pod názvem. |
 | `status` | `draft` (rozpracováno, zatím neplatí), `current` (platí), `outdated` (zastaralé, platí jen pro historii). |
 | `owner` | Role nebo člověk, který stránku udržuje pravdivou. |
 | `reviewed` | Datum, kdy stránku naposledy někdo ověřil proti skutečnosti, ve tvaru `2026-11-06`. |
@@ -56,8 +56,11 @@ Na začátku každé stránky je hlavička mezi řádky `---`. Povinný je jen n
 | `superseded_by` | U rozhodnutí, které už neplatí: cesta k rozhodnutí, které ho nahradilo, například `rozhodnuti/0002-novy-postup`. |
 | `sample` | `true` u ukázkové stránky šablony. Prázdný start ji smaže. |
 
-Údaje se ukazují pod názvem stránky. Stránka s chybným údajem se nesestaví a
-kontrola na to upozorní dřív, než se změna dostane k lidem.
+Název je nadpis stránky a popis řádek pod ním. Pod popisem stojí ostatní
+údaje: stav, kdo stránku udržuje, kdy ji někdo ověřil, jiné názvy, zdroje a
+u rozhodnutí kdo a kdy rozhodl a čím bylo nahrazeno. Ukázková stránka má
+navíc nahoře pruh „Ukázka“. Stránka s chybným údajem se nesestaví a kontrola
+na to upozorní dřív, než se změna dostane k lidem.
 
 ## Jak se obsah mění
 

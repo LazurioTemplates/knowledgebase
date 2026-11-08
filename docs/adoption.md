@@ -231,9 +231,12 @@ git merge-base --is-ancestor <commit> HEAD && echo ancestor
 
 Open the module's pull request with what you did, what you verified, the
 merged release and commit, the language, the start, the design system the
-look comes from, and what is left. After both pull requests are merged and the module is
-checked out on `main`, `lazurio module setup` must report it `current`, and
-`lazurio module start <Organization>/<slug> --json` returns the URL to open.
+look comes from, and what is left. After both pull requests are merged and
+the module is checked out on `main`, `lazurio module list <Organization> --json`
+lists it as a module that may run, `lazurio module build <Organization>/<slug> --json`
+builds its commit, and `lazurio module start <Organization>/<slug> --json`
+returns the URL to open (`runtime.url`); `lazurio module status` and
+`lazurio module logs` say why when it does not.
 A preview before the merge is not proof that the module runs in the
 Organization.
 

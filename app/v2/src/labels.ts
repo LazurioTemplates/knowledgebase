@@ -19,6 +19,7 @@ export type Labels = Readonly<{
     owner: string;
     reviewed: string;
     aliases: string;
+    sources: string;
   }>;
   statuses: Readonly<{ draft: string; current: string; outdated: string }>;
 }>;
@@ -37,6 +38,7 @@ export const LABELS: Readonly<Record<Language, Labels>> = {
       owner: "Odpovídá",
       reviewed: "Ověřeno",
       aliases: "Také",
+      sources: "Zdroje",
     },
     statuses: {
       draft: "rozpracováno, zatím neplatí",
@@ -57,6 +59,7 @@ export const LABELS: Readonly<Record<Language, Labels>> = {
       owner: "Owner",
       reviewed: "Reviewed",
       aliases: "Also",
+      sources: "Sources",
     },
     statuses: {
       draft: "draft, not valid yet",

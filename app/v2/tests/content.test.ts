@@ -77,6 +77,37 @@ describe("the rules find what breaks them", () => {
     }
   });
 
+  test("a reference link to an example or to no page is found like an inline one", () => {
+    const sample = content.pages.find((p) => p.frontmatter.sample === true);
+    if (!sample) return;
+    const problems = withPages(
+      page(
+        `${processes}/references.md`,
+        { title: "X" },
+        `See [the example][ex], [Gone][] and [short].\n\n[ex]: /${sample.slug}/\n[gone]: /missing/ "Title"\n> [short]: </also-missing/>\n`,
+      ),
+    );
+    expect(problems).toEqual([
+      `${lang}/${processes}/references.md: links to the example /${sample.slug}/; the empty start would break the link`,
+      `${lang}/${processes}/references.md: the link /missing/ leads to no page and no file of public/`,
+      `${lang}/${processes}/references.md: the link /also-missing/ leads to no page and no file of public/`,
+    ]);
+  });
+
+  test("an HTML link or image to no page or file is found", () => {
+    const problems = withPages(
+      page(
+        `${processes}/html.md`,
+        { title: "X" },
+        `<a href="/missing/">x</a> <img src='/nothing.png'>`,
+      ),
+    );
+    expect(problems).toEqual([
+      `${lang}/${processes}/html.md: the link /missing/ leads to no page and no file of public/`,
+      `${lang}/${processes}/html.md: the link /nothing.png leads to no page and no file of public/`,
+    ]);
+  });
+
   test("a decision without its number, date or author, or superseded wrongly", () => {
     const problems = withPages(
       page(`${decisions}/no-number.md`, { title: "X", status: "current" }),
@@ -108,12 +139,53 @@ describe("the rules find what breaks them", () => {
 });
 
 describe("reading pages", () => {
-  test("frontmatter and links", () => {
+  test("frontmatter", () => {
     const { frontmatter, body } = splitFrontmatter("---\ntitle: A\naliases: [b, c]\n---\n\nText");
     expect(frontmatter).toEqual({ title: "A", aliases: ["b", "c"] });
     expect(body).toBe("\nText");
-    expect(
-      internalLinks("[a](/x/) [b](https://e.example/) [c](#k) `[d](/code/)` [e](/y/#k)"),
-    ).toEqual(["/x/", "/y/"]);
+  });
+
+  test("links of every form Markdown and Starlight render, and none in code", () => {
+    const body = [
+      'Inline [a](/a/), [t](/t/#k "title"), ![img](/img.png), [s](</with space/>), [p](/a_(b)/).',
+      "Full [x][one], collapsed [Two][], shortcut [three].",
+      "",
+      "[one]: /one/",
+      "[two]: </two/> 'Title'",
+      "  [three]: /three/?q=1",
+      "> [quoted]: /quoted/",
+      "- [listed]: /listed/",
+      "[^1]: A footnote, not a link.",
+      "",
+      "Elsewhere [e](https://e.example/) <https://auto.example/> [m](mailto:a@b.c) [h](#here) [cdn](//cdn.example/x)",
+      '<a href="/html/">x</a> <img src="/html.png">',
+      "`[code](/code/)` and ``[[double]](/double/)``",
+      "<!-- [comment](/comment/) -->",
+      "```md",
+      "[fenced](/fenced/)",
+      "[fd]: /fenced-definition/",
+      "```",
+      "~~~",
+      "[tilde](/tilde/)",
+      "~~~",
+      "- item",
+      "",
+      "    continued with [a link](/continued/)",
+    ].join("\n");
+    expect(internalLinks(body)).toEqual([
+      "/a/",
+      "/t/",
+      "/img.png",
+      "/with space/",
+      "/a_(b)/",
+      "/continued/",
+      "/one/",
+      "/two/",
+      "/three/",
+      "/quoted/",
+      "/listed/",
+      "/html/",
+      "/html.png",
+    ]);
   });
 });

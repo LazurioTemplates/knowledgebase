@@ -54,15 +54,55 @@ export function readPages(docs: string): Page[] {
     .sort((a, b) => a.path.localeCompare(b.path));
 }
 
-/** Site-relative link targets in Markdown links: `[text](/procesy/x/)`, with the
- * anchor and the query cut off. Links to other sites and anchors on the same
- * page are not returned. */
+// Code is not a link: fenced code blocks, inline code and HTML comments are
+// removed before links are read. Indented lines stay: four spaces are as often
+// the continuation of a list item, and a link missed there would be worse than
+// a link in code that gets checked.
+function withoutCode(body: string): string {
+  return body
+    .replace(/^[ \t>]*(`{3,}|~{3,})[^\n]*\n[\s\S]*?^[ \t>]*\1[`~]*[ \t]*$/gm, "")
+    .replace(/<!--[\s\S]*?-->/g, "")
+    .replace(/(`+)[^`]*?\1/g, "");
+}
+
+/** Every link target of a page as Markdown and Starlight render it: inline
+ * links and images (`[text](/x/ "title")`, `![alt](</x y/>)`), the
+ * definitions behind reference links (`[text][ref]`, `[ref][]` and `[ref]`
+ * all point to `[ref]: /x/`), and the `href` and `src` of raw HTML. A
+ * definition counts even when nothing refers to it. */
+export function linkTargets(body: string): string[] {
+  const text = withoutCode(body);
+  const targets: string[] = [];
+  const destination = String.raw`(?:<([^>\n]*)>|([^\s()<>]+(?:\([^\s()]*\)[^\s()<>]*)*))`;
+  const inline = new RegExp(
+    String.raw`\]\(\s*${destination}(?:\s+(?:"[^"]*"|'[^']*'|\([^)]*\)))?\s*\)`,
+    "g",
+  );
+  for (const match of text.matchAll(inline)) targets.push(match[1] ?? match[2] ?? "");
+  // A definition may stand in a quote or a list item; `[^1]:` is a footnote.
+  const definition = new RegExp(
+    String.raw`^[ \t>]*(?:(?:[-*+]|\d+[.)])[ \t]+)?\[(?!\^)[^\]\n]+\]:[ \t]*${destination}`,
+    "gm",
+  );
+  for (const match of text.matchAll(definition)) targets.push(match[1] ?? match[2] ?? "");
+  for (const match of text.matchAll(
+    /<(?:a|img|source)\b[^>]*?\s(?:href|src)\s*=\s*(?:"([^"]*)"|'([^']*)')/gi,
+  )) {
+    targets.push(match[1] ?? match[2] ?? "");
+  }
+  return targets.map((target) => target.trim()).filter((target) => target !== "");
+}
+
+/** Site-relative link targets of a page (see `linkTargets`), with the anchor
+ * and the query cut off. Links to other sites (a scheme such as `https:` or
+ * `mailto:`) and anchors on the same page are not returned; a relative link is,
+ * so that the content rules can ask for a link from the site root. */
 export function internalLinks(body: string): string[] {
-  const withoutCode = body.replace(/```[\s\S]*?```/g, "").replace(/`[^`\n]*`/g, "");
   const links: string[] = [];
-  for (const match of withoutCode.matchAll(/\]\(\s*<?([^)\s>]+)>?(?:\s+"[^"]*")?\s*\)/g)) {
-    const target = match[1] ?? "";
-    if (/^[a-z][a-z0-9+.-]*:/i.test(target) || target.startsWith("#")) continue;
+  for (const target of linkTargets(body)) {
+    if (/^[a-z][a-z0-9+.-]*:/i.test(target) || target.startsWith("#") || target.startsWith("//")) {
+      continue;
+    }
     links.push(target.replace(/[#?].*$/, ""));
   }
   return links;

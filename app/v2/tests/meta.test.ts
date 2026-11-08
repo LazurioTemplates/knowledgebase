@@ -16,6 +16,7 @@ const meta = {
   owner: "Vedení",
   reviewed: new Date("2026-10-30"),
   aliases: ["test", "pokus"],
+  sources: ["Plán EX-0001", "https://example.org/zapis"],
 } as const;
 
 test("a page's metadata in Czech, a decision with its replacement as a link", () => {
@@ -27,6 +28,14 @@ test("a page's metadata in Czech, a decision with its replacement as a link", ()
     { label: "Odpovídá", value: "Vedení" },
     { label: "Ověřeno", value: "30. 10. 2026" },
     { label: "Také", value: "test, pokus", indexed: true },
+    {
+      label: "Zdroje",
+      value: "Plán EX-0001; https://example.org/zapis",
+      parts: [
+        { text: "Plán EX-0001" },
+        { text: "https://example.org/zapis", href: "https://example.org/zapis" },
+      ],
+    },
   ]);
   expect(describePage({}, "cs", (id) => id)).toEqual([]);
 });
@@ -42,5 +51,6 @@ test("the same metadata in English", () => {
     "Owner: Vedení",
     "Reviewed: 30 October 2026",
     "Also: test, pokus",
+    "Sources: Plán EX-0001; https://example.org/zapis",
   ]);
 });

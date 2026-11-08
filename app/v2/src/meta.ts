@@ -1,7 +1,10 @@
 import { labelsOf } from "./labels";
 
 // The metadata of a page in the words people read under its title, in the
-// page's language. Pure, so that the tests hold the wording and the dates.
+// page's language: every detail of the guide's table except the title (the
+// heading), the description (the line under it, src/components/PageTitle.astro)
+// and `sample` (the banner). Pure, so that the tests hold the wording and the
+// dates.
 
 export type PageMeta = Readonly<{
   status?: "draft" | "current" | "outdated" | undefined;
@@ -9,14 +12,20 @@ export type PageMeta = Readonly<{
   reviewed?: Date | undefined;
   sample?: boolean | undefined;
   aliases?: readonly string[] | undefined;
+  sources?: readonly string[] | undefined;
   decided?: Date | undefined;
   decided_by?: string | undefined;
   superseded_by?: string | undefined;
 }>;
 
+/** One part of a fact's value; a source that is a web address is a link. */
+export type Part = Readonly<{ text: string; href?: string | undefined }>;
+
 export type Fact = Readonly<{
   label: string;
   value: string;
+  /** The value in parts, when some of them are links (the sources). */
+  parts?: readonly Part[] | undefined;
   href?: string | undefined;
   tone?: "draft" | "outdated" | undefined;
   /** Search indexes this fact (the other names of a term). */
@@ -75,6 +84,15 @@ export function describePage(
   }
   if (meta.aliases && meta.aliases.length > 0) {
     facts.push({ label: label.aliases, value: meta.aliases.join(", "), indexed: true });
+  }
+  if (meta.sources && meta.sources.length > 0) {
+    facts.push({
+      label: label.sources,
+      value: meta.sources.join("; "),
+      parts: meta.sources.map((source) =>
+        /^https?:\/\/\S+$/.test(source) ? { text: source, href: source } : { text: source },
+      ),
+    });
   }
   return facts;
 }

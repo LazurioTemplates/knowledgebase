@@ -53,7 +53,7 @@ the module; they are never a second content corpus.
 | Field | Meaning |
 |---|---|
 | `title` | Required. What people search for. |
-| `description` | One sentence; shown in search results. |
+| `description` | One sentence; shown under the title. |
 | `status` | `draft` (written, not confirmed), `current`, `outdated` (kept for history). |
 | `owner` | The role or person who keeps the page true. |
 | `reviewed` | When someone last confirmed the page against reality. |
@@ -66,9 +66,11 @@ the module; they are never a second content corpus.
 The App's content schema (`app/v2/src/content.config.ts`) types these fields
 and stops the build on a wrong value. The content rules
 (`app/v2/src/content-check.ts`, run by the tests) hold the rest: placement and
-file names, links from the site root that resolve, no link from an own page
-to an example, numbered decisions with their date and author, a replaced
-decision marked outdated, and no glossary term or alias defined twice.
+file names, links from the site root that resolve (inline links and images,
+the definitions behind reference links, and the `href` and `src` of raw
+HTML), no link from an own page to an example, numbered decisions with their
+date and author, a replaced decision marked outdated, and no glossary term or
+alias defined twice. `bun run start:empty` reads links the same way.
 
 ## Runtime
 
@@ -83,7 +85,9 @@ decision marked outdated, and no glossary term or alias defined twice.
   reads only `src/content/docs`, so the App lists the files itself; a new
   page still needs no change of navigation.
 - A component override of the page title (`src/components/PageTitle.astro`)
-  shows the metadata in words; the route middleware (`src/routeData.ts`)
+  shows the description under the title and the other details in words under
+  it (`src/meta.ts`, every field of the table above except `title` and
+  `sample`); the route middleware (`src/routeData.ts`)
   puts a banner on every example page and names the section in the previous
   and next links instead of a bare "Přehled".
 - `src/styles/theme.css` and `data/v2/public/favicon.svg` are generated from
