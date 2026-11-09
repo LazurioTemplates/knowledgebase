@@ -1,0 +1,31 @@
+name: Windows
+# The same check on Windows, where people may run the knowledge base and its
+# tools (the empty start, the design system refresh) on their own computers.
+# Only code can break that, so this runs for pull requests that change the App
+# or a workflow, and on demand; never after a merge to main (Module Standard,
+# CI). Content paths are checked on Linux by tests/paths.test.ts.
+on:
+  pull_request:
+    paths:
+      - "app/**"
+      - ".github/workflows/**"
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: windows-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  check:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: app/v2
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: 1.4.4
+      - run: bun install --frozen-lockfile
+      - run: bun run check

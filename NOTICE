@@ -1,0 +1,42 @@
+Knowledgebase template of the Lazurio Marketplace, LazurioTemplates/knowledgebase
+Copyright (c) 2026 Lazurio contributors, licensed under MIT (see LICENSE).
+
+Everything in this repository is covered by the MIT license: the code of the
+viewer App and its tools, the Markdown pages, the skills for agents and the
+screenshots in docs/screenshots/.
+
+The Organization is invented. "Example", its people (Alex Morgan, Sam
+Taylor), its offer, experiments, roles and decisions, in Czech and in
+English, are fictional; they describe no real company, person or customer. An Organization that adopts
+this template replaces them with its own content or removes them
+(docs/adoption.md).
+
+Design system
+-------------
+
+The look, the favicon (the brand's logo symbol) and the status badge come
+from the package design-system, LazurioTemplates/design-system v2.0.0,
+Copyright (c) 2026 Lazurio contributors, MIT. It is a dependency, not part
+of this repository. An Organization that depends on its own design system
+takes that design system's license with it.
+
+Third-party material
+--------------------
+
+No font, image, icon set or other third-party asset is distributed in this
+repository.
+
+- Fonts and icons. The static build carries the font files the design
+  system's package ships, Inter, Inter Tight and Geist Mono, under the SIL
+  Open Font License 1.1 (their licence texts are in the package, in
+  app/v1/kit/fonts/), and the icon of the status badge, from Iconoir (MIT,
+  app/v1/kit/licenses/ in the package).
+- Dependencies. The viewer installs its npm dependencies at preparation time
+  (app/v2/package.json, app/v2/bun.lock); they are not part of this
+  repository and keep their own licenses: Astro, Starlight and
+  @astrojs/check (MIT), @lazurio/module-kit (MIT), design-system (MIT),
+  mdast-util-from-markdown,
+  micromark-extension-gfm, mdast-util-gfm, micromark-extension-directive and
+  mdast-util-directive (MIT), parse5 (MIT), TypeScript (Apache-2.0), Biome
+  (MIT OR Apache-2.0) and @types/bun (MIT). The static build contains
+  the code Astro, Starlight and Pagefind generate for the pages.

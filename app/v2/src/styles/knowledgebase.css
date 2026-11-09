@@ -1,0 +1,62 @@
+/*
+ * The layout of the knowledge base on top of Starlight. Colours, fonts and
+ * sizes come from the design system's tokens (`--ds-*`), directly or through
+ * Starlight's properties that theme.css maps onto them; never a value of its
+ * own.
+ */
+
+:root {
+  --sl-content-width: 50rem;
+  --sl-sidebar-width: 19rem;
+  --sl-line-height-headings: var(--ds-type-display-leading);
+}
+
+h1#_top,
+.sl-markdown-content :is(h1, h2, h3, h4) {
+  font-family: var(--ds-font-heading);
+  letter-spacing: var(--ds-type-display-tracking);
+}
+
+:root header.header {
+  border-bottom: var(--ds-size-border) solid var(--ds-color-line);
+}
+
+.sl-markdown-content :is(p, li) {
+  line-height: var(--ds-type-body-leading);
+}
+
+.sl-markdown-content code:not(pre code) {
+  border-radius: var(--ds-radius-xs);
+  padding: 0 var(--ds-space-4);
+}
+
+/* Focus is neutral ink with an offset, as everywhere in the design system. */
+:focus-visible {
+  outline: var(--ds-size-focus-width) solid var(--ds-color-focus);
+  outline-offset: var(--ds-size-focus-offset);
+}
+
+/* The page's description and details under its title (src/components/PageTitle.astro). */
+.kb-description {
+  margin-top: var(--ds-space-8);
+  color: var(--ds-color-ink-muted);
+  font-size: var(--ds-type-lead-size);
+  line-height: var(--ds-type-lead-leading);
+}
+
+.kb-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ds-space-4) var(--ds-space-20);
+  margin-top: var(--ds-space-12);
+  color: var(--ds-color-ink-muted);
+  font-size: var(--ds-type-meta-size);
+  line-height: var(--ds-type-meta-leading);
+}
+
+.kb-meta__fact {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-space-4);
+}

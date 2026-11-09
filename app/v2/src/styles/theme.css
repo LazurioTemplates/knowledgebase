@@ -1,0 +1,64 @@
+/*
+ * Starlight's colours, fonts and type scale from the design system's tokens
+ * (`--ds-*`, design-system/styles.css). Only roles, never a colour of its own:
+ * both themes come from the design system, which switches them by
+ * `data-theme` on <html> exactly as Starlight does. Starlight names its scale
+ * from the dark theme: `white` is the strongest text and `black` the page, in
+ * both themes. tests/theme.test.ts checks that every role exists and that the
+ * text the theme puts on a surface is readable in both themes.
+ */
+:root,
+:root[data-theme="light"],
+:root[data-theme="dark"] {
+  --sl-font: var(--ds-font-text);
+  --sl-font-mono: var(--ds-font-mono);
+  --sl-text-base: var(--ds-type-body-size);
+  --sl-text-h1: var(--ds-type-display-size);
+  --sl-text-h2: var(--ds-type-title-size);
+
+  --sl-color-white: var(--ds-color-ink);
+  --sl-color-gray-1: var(--ds-color-ink);
+  --sl-color-gray-2: var(--ds-color-ink-muted);
+  --sl-color-gray-3: var(--ds-color-ink-muted);
+  --sl-color-gray-4: var(--ds-color-line-strong);
+  --sl-color-gray-5: var(--ds-color-line);
+  --sl-color-gray-6: var(--ds-color-surface-muted);
+  --sl-color-gray-7: var(--ds-color-surface);
+  --sl-color-black: var(--ds-color-bg);
+
+  --sl-color-accent-low: var(--ds-color-accent-soft);
+  --sl-color-accent: var(--ds-color-accent);
+  --sl-color-accent-high: var(--ds-color-accent-strong);
+
+  --sl-color-text: var(--ds-color-ink);
+  --sl-color-text-accent: var(--ds-color-accent);
+  --sl-color-text-invert: var(--ds-color-on-accent);
+  --sl-color-bg: var(--ds-color-bg);
+  --sl-color-bg-nav: var(--ds-color-surface);
+  --sl-color-bg-sidebar: var(--ds-color-bg);
+  --sl-color-bg-inline-code: var(--ds-color-surface-muted);
+  --sl-color-bg-accent: var(--ds-color-accent);
+  --sl-color-hairline-light: var(--ds-color-line);
+  --sl-color-hairline: var(--ds-color-line);
+  --sl-color-hairline-shade: var(--ds-color-surface-muted);
+  --sl-color-backdrop-overlay: var(--ds-shadow-overlay);
+  --sl-color-banner-bg: var(--ds-color-accent);
+  --sl-color-banner-text: var(--ds-color-on-accent);
+
+  /* Asides and badges: note and tip, success, caution, danger. */
+  --sl-color-blue-low: var(--ds-color-info-soft);
+  --sl-color-blue: var(--ds-color-info);
+  --sl-color-blue-high: var(--ds-color-info);
+  --sl-color-purple-low: var(--ds-color-accent-soft);
+  --sl-color-purple: var(--ds-color-accent);
+  --sl-color-purple-high: var(--ds-color-accent-strong);
+  --sl-color-green-low: var(--ds-color-success-soft);
+  --sl-color-green: var(--ds-color-success);
+  --sl-color-green-high: var(--ds-color-success);
+  --sl-color-orange-low: var(--ds-color-warning-soft);
+  --sl-color-orange: var(--ds-color-warning);
+  --sl-color-orange-high: var(--ds-color-warning);
+  --sl-color-red-low: var(--ds-color-danger-soft);
+  --sl-color-red: var(--ds-color-danger);
+  --sl-color-red-high: var(--ds-color-danger);
+}

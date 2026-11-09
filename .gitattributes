@@ -1,0 +1,4 @@
+# Keep every text file LF on every platform, so that a Windows checkout with
+# core.autocrlf=true reads the pages and the tests' fixtures as they are.
+* text=auto eol=lf
+*.webp binary

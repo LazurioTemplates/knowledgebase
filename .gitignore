@@ -1,0 +1,16 @@
+node_modules/
+dist/
+.astro/
+*.tsbuildinfo
+.env*
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+.worktrees/
+.DS_Store
+# The App directory of the scaffold before app/v2 (an adoption deletes it),
+# kept ignored for checkouts that prepared it.
+/app/v1/node_modules/
+/app/v1/dist/
+/app/v1/.astro/

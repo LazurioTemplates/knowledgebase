@@ -1,0 +1,31 @@
+name: Check
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+concurrency:
+  group: check-${{ github.ref }}
+  cancel-in-progress: true
+# One Linux job runs every gate on every pull request and every push to main
+# (Module Standard, CI). Windows runs separately, see windows.yml.
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: app/v2
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          bun-version: 1.4.4
+      - run: test "$(bun --version)" = "1.4.4"
+      - run: bun install --frozen-lockfile
+      # Types (astro check), Biome, and the tests: the declared structure and
+      # the content rules of data/v2, the empty start, the design system
+      # snapshot and its contrast, the skills, paths that check out on
+      # Windows, the template contract, start and build.
+      - run: bun run check
