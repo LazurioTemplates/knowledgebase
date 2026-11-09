@@ -47,9 +47,12 @@ of Lazurio.
   `knowledgebase-write-procedure`, `knowledgebase-record-decision`,
   `knowledgebase-add-term`.
 - **Content rules** that name the page and what to do: placement and file
-  names, links that resolve (inline, reference and HTML links alike), no
-  link from own content to an example, numbered decisions with date and
-  author, replaced decisions marked outdated, no term defined twice.
+  names, Markdown pages only (`.md`), links that resolve, no link from own
+  content to an example, numbered decisions with date and author, replaced
+  decisions marked outdated, no term defined twice. Links are read by a
+  Markdown parser with the grammar the site renders (micromark with GFM and
+  Starlight's directives, raw HTML with `parse5`), and a build test compares
+  them with the links Starlight renders.
 - **Design system as a locked copy**: the tokens of
   `LazurioTemplates/design-system` v1.0.0, copied unchanged, with a lock
   (source, release, commit, SHA-256 of the copied file and of the adapted

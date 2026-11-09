@@ -1,8 +1,10 @@
 import { describe, expect, test } from "bun:test";
+import { readFileSync } from "node:fs";
 import { contentProblems, readContent } from "../src/content-check";
 import { internalLinks, splitFrontmatter } from "../src/pages";
 import { languagesOf, sectionOf } from "../src/structure";
 import { dataDir } from "./support/copy";
+import { LINK_FORMS, LINK_FORMS_INTERNAL } from "./support/link-forms";
 
 // The content contract of the knowledge base (data/v2), for the pages of each
 // language on their own: every page has a title, lives in a declared section
@@ -77,14 +79,14 @@ describe("the rules find what breaks them", () => {
     }
   });
 
-  test("a reference link to an example or to no page is found like an inline one", () => {
+  test("a reference link to an example or to no page is found like an inline one, also with its destination on the next line", () => {
     const sample = content.pages.find((p) => p.frontmatter.sample === true);
     if (!sample) return;
     const problems = withPages(
       page(
         `${processes}/references.md`,
         { title: "X" },
-        `See [the example][ex], [Gone][] and [short].\n\n[ex]: /${sample.slug}/\n[gone]: /missing/ "Title"\n> [short]: </also-missing/>\n`,
+        `See [the example][ex], [Gone][] and [short].\n\n[ex]:\n  /${sample.slug}/\n[gone]: /missing/ "Title"\n\n> [short]: </also-missing/>\n`,
       ),
     );
     expect(problems).toEqual([
@@ -105,6 +107,17 @@ describe("the rules find what breaks them", () => {
     expect(problems).toEqual([
       `${lang}/${processes}/html.md: the link /missing/ leads to no page and no file of public/`,
       `${lang}/${processes}/html.md: the link /nothing.png leads to no page and no file of public/`,
+    ]);
+  });
+
+  test("an .mdx page or another file beside the pages", () => {
+    const problems = contentProblems({
+      ...content,
+      others: [`${processes}/component-page.mdx`, `${processes}/diagram.png`],
+    });
+    expect(problems).toEqual([
+      `${lang}/${processes}/component-page.mdx: only Markdown pages (.md) live here; the App does not read .mdx, and files a page links to go in data/v2/public/`,
+      `${lang}/${processes}/diagram.png: only Markdown pages (.md) live here; the App does not read .mdx, and files a page links to go in data/v2/public/`,
     ]);
   });
 
@@ -145,47 +158,15 @@ describe("reading pages", () => {
     expect(body).toBe("\nText");
   });
 
-  test("links of every form Markdown and Starlight render, and none in code", () => {
-    const body = [
-      'Inline [a](/a/), [t](/t/#k "title"), ![img](/img.png), [s](</with space/>), [p](/a_(b)/).',
-      "Full [x][one], collapsed [Two][], shortcut [three].",
-      "",
-      "[one]: /one/",
-      "[two]: </two/> 'Title'",
-      "  [three]: /three/?q=1",
-      "> [quoted]: /quoted/",
-      "- [listed]: /listed/",
-      "[^1]: A footnote, not a link.",
-      "",
-      "Elsewhere [e](https://e.example/) <https://auto.example/> [m](mailto:a@b.c) [h](#here) [cdn](//cdn.example/x)",
-      '<a href="/html/">x</a> <img src="/html.png">',
-      "`[code](/code/)` and ``[[double]](/double/)``",
-      "<!-- [comment](/comment/) -->",
-      "```md",
-      "[fenced](/fenced/)",
-      "[fd]: /fenced-definition/",
-      "```",
-      "~~~",
-      "[tilde](/tilde/)",
-      "~~~",
-      "- item",
-      "",
-      "    continued with [a link](/continued/)",
-    ].join("\n");
-    expect(internalLinks(body)).toEqual([
-      "/a/",
-      "/t/",
-      "/img.png",
-      "/with space/",
-      "/a_(b)/",
-      "/continued/",
-      "/one/",
-      "/two/",
-      "/three/",
-      "/quoted/",
-      "/listed/",
-      "/html/",
-      "/html.png",
+  test("links of every form Markdown and Starlight render, and none that do not render", () => {
+    // tests/build.test.ts builds this page and compares the links it renders.
+    const { body } = splitFrontmatter(readFileSync(LINK_FORMS, "utf8"));
+    expect(internalLinks(body)).toEqual(LINK_FORMS_INTERNAL);
+  });
+
+  test("a reference definition whose destination is on the next line", () => {
+    expect(internalLinks("See [example][ex].\n\n[ex]:\n  /slovnik/experiment/\n")).toEqual([
+      "/slovnik/experiment/",
     ]);
   });
 });

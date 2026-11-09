@@ -48,6 +48,11 @@ describe("empty start", () => {
   for (const [form, link] of [
     ["an inline link", (slug: string) => `See [the example](/${slug}/).`],
     ["a reference link", (slug: string) => `See [the example][ex].\n\n[ex]: /${slug}/`],
+    [
+      "a reference link whose definition has its destination on the next line",
+      (slug: string) => `See [example][ex].\n\n[ex]:\n  /${slug}/`,
+    ],
+    ["a reference image", (slug: string) => `![the example][ex]\n\n[ex]: /${slug}/`],
     ["an HTML link", (slug: string) => `See <a href="/${slug}/">the example</a>.`],
   ] as const) {
     test(`refuses while an own page links to an example by ${form}`, () => {

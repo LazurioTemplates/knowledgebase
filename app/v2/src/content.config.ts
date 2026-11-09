@@ -15,7 +15,7 @@ import { loadStructure } from "./structure";
 const docs = defineCollection({
   loader: glob({
     base: `../../data/v2/${loadStructure().content_root}`,
-    pattern: "**/[^_]*.{md,mdx}",
+    pattern: "**/[^_]*.md",
   }),
   schema: docsSchema({
     extend: z.object({

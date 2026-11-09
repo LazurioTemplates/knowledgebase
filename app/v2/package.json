@@ -22,7 +22,13 @@
   "dependencies": {
     "@astrojs/starlight": "0.42.8",
     "@lazurio/module-kit": "github:Lazurio/module-kit#v0.2.0",
-    "astro": "7.4.5"
+    "astro": "7.4.5",
+    "mdast-util-directive": "3.2.0",
+    "mdast-util-from-markdown": "2.1.0",
+    "mdast-util-gfm": "3.1.0",
+    "micromark-extension-directive": "4.0.0",
+    "micromark-extension-gfm": "3.0.0",
+    "parse5": "8.0.1"
   },
   "devDependencies": {
     "@astrojs/check": "0.9.12",

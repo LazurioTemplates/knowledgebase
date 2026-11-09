@@ -168,7 +168,7 @@ export function sectionOf(structure: Structure, kind: (typeof SECTION_KINDS)[num
   return section;
 }
 
-const pageFile = (name: string) => [`${name}.md`, `${name}.mdx`];
+const pageFile = (name: string) => [`${name}.md`];
 
 /** Checks one language's pages against its structure: every section has its
  * directory with an `index.md`, every root page exists, and nothing
@@ -238,8 +238,8 @@ export type SidebarEntry = { slug: string } | { label: string; items: { slug: st
 export function sectionSlugs(dataRoot: string, structure: Structure, section: Section): string[] {
   const directory = join(dataRoot, structure.content_root, section.directory);
   const pages = readdirSync(directory)
-    .filter((file) => /\.mdx?$/.test(file) && !file.startsWith("_"))
-    .map((file) => file.replace(/\.mdx?$/, ""))
+    .filter((file) => file.endsWith(".md") && !file.startsWith("_"))
+    .map((file) => file.replace(/\.md$/, ""))
     .filter((name) => name !== "index")
     .sort((a, b) => a.localeCompare(b, "en"));
   return [section.directory, ...pages.map((name) => `${section.directory}/${name}`)];

@@ -1,6 +1,6 @@
 import { existsSync } from "node:fs";
 import { join } from "node:path";
-import { internalLinks, isSample, linkSlug, type Page, readPages } from "./pages";
+import { internalLinks, isSample, linkSlug, otherFiles, type Page, readPages } from "./pages";
 import { type Language, loadStructure, NAME, type Structure, sectionOf } from "./structure";
 
 // The rules of the content in data/v2 beyond what Astro's schema checks: where
@@ -12,14 +12,22 @@ import { type Language, loadStructure, NAME, type Structure, sectionOf } from ".
 const STATUSES = new Set(["draft", "current", "outdated"]);
 const DECISION_FILE = /^\d{4}-[a-z0-9]+(?:-[a-z0-9]+)*\.md$/;
 
-export type Content = Readonly<{ structure: Structure; pages: readonly Page[]; publicDir: string }>;
+export type Content = Readonly<{
+  structure: Structure;
+  pages: readonly Page[];
+  /** Files beside the pages that are no Markdown page. */
+  others: readonly string[];
+  publicDir: string;
+}>;
 
 /** The pages of one language (by default the one the App shows). */
 export function readContent(dataRoot: string, language?: Language): Content {
   const structure = loadStructure(dataRoot, language);
+  const docs = join(dataRoot, structure.content_root);
   return {
     structure,
-    pages: readPages(join(dataRoot, structure.content_root)),
+    pages: readPages(docs),
+    others: otherFiles(docs),
     publicDir: join(dataRoot, "public"),
   };
 }
@@ -27,8 +35,11 @@ export function readContent(dataRoot: string, language?: Language): Content {
 const isText = (value: unknown): value is string =>
   typeof value === "string" && value.trim() !== "";
 
-export function contentProblems({ structure, pages, publicDir }: Content): string[] {
-  const problems: string[] = [];
+export function contentProblems({ structure, pages, others, publicDir }: Content): string[] {
+  const problems: string[] = others.map(
+    (other) =>
+      `${structure.language}/${other}: only Markdown pages (.md) live here; the App does not read .mdx, and files a page links to go in data/v2/public/`,
+  );
   const bySlug = new Map(pages.map((page) => [page.slug, page]));
   const sections = new Set(structure.sections.map((section) => section.directory));
   const roots = new Set(structure.root_pages.map((page) => `${page}.md`));
@@ -43,7 +54,7 @@ export function contentProblems({ structure, pages, publicDir }: Content): strin
     const file = parts.at(-1) ?? page.path;
 
     if (!isText(meta.title)) problems.push(`${path}: the frontmatter has no title`);
-    if (!NAME.test(file.replace(/\.mdx?$/, ""))) {
+    if (!NAME.test(file.replace(/\.md$/, ""))) {
       problems.push(`${path}: name the file in lowercase ASCII words joined by hyphens`);
     }
     const placed =

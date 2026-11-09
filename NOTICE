@@ -36,6 +36,8 @@ repository.
 - Dependencies. The viewer installs its npm dependencies at preparation time
   (app/v2/package.json, app/v2/bun.lock); they are not part of this
   repository and keep their own licenses: Astro, Starlight and
-  @astrojs/check (MIT), @lazurio/module-kit (MIT), TypeScript (Apache-2.0),
-  Biome (MIT OR Apache-2.0) and @types/bun (MIT). The static build contains
+  @astrojs/check (MIT), @lazurio/module-kit (MIT), mdast-util-from-markdown,
+  micromark-extension-gfm, mdast-util-gfm, micromark-extension-directive and
+  mdast-util-directive (MIT), parse5 (MIT), TypeScript (Apache-2.0), Biome
+  (MIT OR Apache-2.0) and @types/bun (MIT). The static build contains
   the code Astro, Starlight and Pagefind generate for the pages.

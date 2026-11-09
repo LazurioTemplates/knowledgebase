@@ -22,8 +22,10 @@ the knowledge base keeps the confirmed result and links the source.
   what it holds. Six kinds have exactly one section each in a language
   (`organization`, `roles`, `processes`, `agent-procedures`, `glossary`,
   `decisions`); further sections are of kind `other`.
-- Pages: `data/v2/docs/<language>/`, Markdown with frontmatter, directly in a
-  section directory or one of the root pages. This is the only page corpus.
+- Pages: `data/v2/docs/<language>/`, Markdown (`.md`) with frontmatter,
+  directly in a section directory or one of the root pages. This is the only
+  page corpus. MDX is not read: its grammar differs, and a knowledge base
+  page needs no components; Starlight's asides work in Markdown (`:::note`).
 - Files the pages link to: `data/v2/public/`.
 - Look: `app/v2/src/design-system/tokens.json`, an unchanged copy of the
   design system's tokens, with `lock.json` (the design system's repository,
@@ -66,11 +68,27 @@ the module; they are never a second content corpus.
 The App's content schema (`app/v2/src/content.config.ts`) types these fields
 and stops the build on a wrong value. The content rules
 (`app/v2/src/content-check.ts`, run by the tests) hold the rest: placement and
-file names, links from the site root that resolve (inline links and images,
-the definitions behind reference links, and the `href` and `src` of raw
-HTML), no link from an own page to an example, numbered decisions with their
+file names, only `.md` files beside the pages, links from the site root that
+resolve, no link from an own page to an example, numbered decisions with their
 date and author, a replaced decision marked outdated, and no glossary term or
 alias defined twice. `bun run start:empty` reads links the same way.
+
+The links of a page are read by parsers, never by patterns
+(`app/v2/src/pages.ts`). Astro 7 renders Markdown with its Satteri processor:
+CommonMark with GFM, and Starlight adds directives for asides. The content
+rules parse a page with the same grammar using micromark
+(`mdast-util-from-markdown` with its GFM and directive extensions, the parser
+Starlight's `remark-directive` brings) and the raw HTML in it with `parse5`,
+the WHATWG HTML parser a browser follows. They read every link that renders:
+inline links and images, reference links and images through their definition
+(also a destination on the next line), autolinks, footnotes, links in asides
+and the URL attributes of raw HTML (`href`, `src`, `srcset`, `poster`); code,
+comments, HTML blocks and references without a definition are no links. The
+build test renders a page of every link form (`app/v2/tests/support/link-forms.md`)
+and compares the links Starlight renders with the links the rules read. One
+difference is known and locked in that test: Satteri renders an HTML tag
+whose unquoted attribute value starts with `/` as text, which CommonMark reads
+as HTML, so the rules read one link more than renders, never one less.
 
 ## Runtime
 
