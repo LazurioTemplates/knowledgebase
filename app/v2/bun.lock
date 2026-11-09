@@ -8,6 +8,7 @@
         "@astrojs/starlight": "0.42.8",
         "@lazurio/module-kit": "github:Lazurio/module-kit#v0.2.0",
         "astro": "7.4.5",
+        "design-system": "github:LazurioTemplates/design-system#v2.0.0",
         "mdast-util-directive": "3.2.0",
         "mdast-util-from-markdown": "2.1.0",
         "mdast-util-gfm": "3.1.0",
@@ -415,6 +416,8 @@
     "defu": ["defu@6.1.7", "", {}, "sha512-7z22QmUWiQ/2d0KkdYmANbRUVABpZ9SNYyH5vx6PZ+nE5bcC0l7uFvEfHlyld/HcGBFTL536ClDt3DEcSlEJAQ=="],
 
     "dequal": ["dequal@2.0.3", "", {}, "sha512-0je+qPKHEMohvfRTCEo3CrPG6cAzAYgmzKyxRiYSSDkS6eGJdyVJm7WaYA5ECaAD9wLB2T4EEeymA5aFVcYXCA=="],
+
+    "design-system": ["design-system@github:LazurioTemplates/design-system#23af5a3", { "peerDependencies": { "astro": "7.4.5", "react": "19.3.1" }, "optionalPeers": ["astro", "react"] }, "LazurioTemplates-design-system-23af5a3", "sha512-gxn6K7t2+8fiX25t2Lpjn02+GK0z0dUPlBRcj8hsTaR5pCdzHj96RyKbcyW9lC2nh5Ei4J34/37mHcd4hnXXRw=="],
 
     "destr": ["destr@2.0.5", "", {}, "sha512-ugFTXCtDZunbzasqBxrK93Ik/DRYsO6S/fedkWEMKqt04xZ4csmnmwGDBAb07QWNaGMAmnTIemsYZCksjATwsA=="],
 

@@ -51,8 +51,13 @@ export default defineConfig({
       sidebar: sidebarOf(structure),
       routeMiddleware: "./src/routeData.ts",
       components: { PageTitle: "./src/components/PageTitle.astro" },
-      // The look of the design system (src/design-system/), then the layout.
-      customCss: ["./src/styles/theme.css", "./src/styles/knowledgebase.css"],
+      // The design system's package first (its cascade layer comes before
+      // Starlight's), Starlight's properties on its tokens, then the layout.
+      customCss: [
+        "./src/styles/design-system.css",
+        "./src/styles/theme.css",
+        "./src/styles/knowledgebase.css",
+      ],
     }),
   ],
 });

@@ -171,26 +171,34 @@ its interface and pages in that language only.
   `bun run start:empty`. Only pages with `sample: true` go; the home page, the
   guide and the overview of every section with its outline stay.
 
-**The look:** the template carries a locked copy of the tokens of
-`LazurioTemplates/design-system` v1.0.0 (the invented Example brand). When
-the Organization has its own design system module (adopted from that
-template, so with the same `content/brand/colors/tokens.json`), take its look
-from a checkout of it at its newest commit on `main` or its release tag:
+**The look:** the knowledge base depends on a design system as a package,
+in `app/v2/package.json`:
 
-```sh
-cd app/v2
-bun run design-system:sync -- <path to the design system checkout> <tag or commit>
+```json
+"design-system": "github:LazurioTemplates/design-system#v2.0.0"
 ```
 
-The command reads the files from that commit (not from the working tree),
-copies the tokens unchanged, records the repository, the commit and the
-SHA-256 in `src/design-system/lock.json`, regenerates the theme and the
-favicon, and names any adapted file whose source changed. Nothing is fetched
-and nothing is read at run time; a newer design system reaches the knowledge
-base only by running the command again in a pull request. The tests fail when
-a text colour of the new theme does not reach WCAG AA contrast on its
-surface; then the design system needs fixing, not the knowledge base. Without
-a design system of its own, keep the copy and say so in the pull request.
+That is the template's invented Example brand. When the Organization has its
+own design system (adopted from `LazurioTemplates/design-system` and released
+with a tag, as its `docs/adoption.md` says), change only that line:
+
+```json
+"design-system": "git+ssh://git@github.com/<Organization>/design-system.git#v<version>"
+```
+
+then `bun install` (it updates `bun.lock`; commit both) and `bun run check`.
+The imports stay the same, because both packages are named `design-system`.
+A new brand of the Organization is a new release of its design system and a
+new pin here; nothing is copied. The tests fail when a text colour Starlight
+draws reaches less than WCAG AA contrast with the design system's roles; then
+the design system needs fixing, not the knowledge base. Without a design
+system of its own, keep the template's and say so in the pull request.
+
+Known limitation: the Organization's design system is private, and a module's
+GitHub Actions cannot install a private package yet (Lazurio/LazurioPlatform#915).
+On an Environment `bun install` works with the person's SSH key; CI of the
+module needs read access to that repository, which the Organization's Admin
+sets up (skill `admin-request`). Never create keys or secrets yourself.
 
 **The glossary:** when the Organization root keeps its own glossary
 (`GLOSSARY.md`), agree with the person which one is the authority. Two places
@@ -256,5 +264,7 @@ instruction.
   branch; a failed or partial adoption keeps its worktree and tells the person
   exactly where to resume;
 - overwrite or move an existing knowledge base as part of an adoption;
-- read files of this template repository or of the design system at run
-  time: the module is a copy that takes updates by merge.
+- read files of this template repository at run time, or take the design
+  system by a copy, a relative path or a branch: the module is a copy of the
+  template that takes updates by merge, and the design system is a package
+  on a released tag.

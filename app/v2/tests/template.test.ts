@@ -67,6 +67,14 @@ describe("template contract", () => {
     expect(runtime.static_fallback).toBe("404");
   });
 
+  test("takes the design system as a package on a released tag, never as a copy", () => {
+    const dependencies: Record<string, string> = packageJson.dependencies;
+    expect(dependencies["design-system"]).toMatch(
+      /^(?:github:[\w.-]+\/design-system|git\+ssh:\/\/git@github\.com\/[\w.-]+\/design-system\.git)#v\d+\.\d+\.\d+$/,
+    );
+    expect(existsSync(join(root, "app/v2/src/design-system"))).toBe(false);
+  });
+
   test("CI runs the pinned Bun and the one check", () => {
     const bun = packageJson.packageManager.replace("bun@", "");
     for (const path of [".github/workflows/check.yml", ".github/workflows/windows.yml"]) {

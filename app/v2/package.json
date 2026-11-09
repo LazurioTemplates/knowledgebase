@@ -15,14 +15,13 @@
     "check": "bun run typecheck && bun run lint && bun run test",
     "test": "bun test",
     "start:empty": "bun run src/cli/empty-start.ts",
-    "start:language": "bun run src/cli/start-language.ts",
-    "theme:write": "bun run src/design-system/generate.ts",
-    "design-system:sync": "bun run src/design-system/sync.ts"
+    "start:language": "bun run src/cli/start-language.ts"
   },
   "dependencies": {
     "@astrojs/starlight": "0.42.8",
     "@lazurio/module-kit": "github:Lazurio/module-kit#v0.2.0",
     "astro": "7.4.5",
+    "design-system": "github:LazurioTemplates/design-system#v2.0.0",
     "mdast-util-directive": "3.2.0",
     "mdast-util-from-markdown": "2.1.0",
     "mdast-util-gfm": "3.1.0",

@@ -1,151 +1,92 @@
-import { afterEach, describe, expect, test } from "bun:test";
-import {
-  cpSync,
-  mkdirSync,
-  mkdtempSync,
-  readFileSync,
-  realpathSync,
-  rmSync,
-  writeFileSync,
-} from "node:fs";
-import { tmpdir } from "node:os";
+import { describe, expect, test } from "bun:test";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { app, generate, generatedPaths } from "../src/design-system/generate";
-import { LOCK_PATH, parseLock, readLock, sha256, tokensCopy } from "../src/design-system/lock";
-import { repositoryUrl, syncDesignSystem } from "../src/design-system/sync";
-import {
-  contrastRatio,
-  parseThemeTokens,
-  TEXT_PAIRS,
-  THEMES,
-  themeStylesheet,
-} from "../src/design-system/theme";
+import { color, contrast, logoSymbol, MINIMUM } from "design-system";
+import { faviconSvg } from "../src/favicon";
+import { appDir } from "./support/copy";
 
-// The look comes from a locked copy of the design system's tokens: the copy is
-// the file its lock names, the theme and the favicon are what it generates,
-// the text the theme puts on a surface is readable, and a sync takes another
-// release from a checkout at its tag.
-const lock = readLock(app);
-const tokensBytes = readFileSync(join(app, tokensCopy(lock).to), "utf8");
-const tokens = parseThemeTokens(JSON.parse(tokensBytes));
-let scratch = "";
+// The look comes from the design system's package: theme.css maps Starlight's
+// properties onto its tokens, the layout names only its tokens, every token
+// named exists in the package, and the text the theme puts on a surface is
+// readable in both themes.
+const styles = (name: string) => readFileSync(join(appDir, "src/styles", name), "utf8");
+const theme = styles("theme.css");
+const tokensCss = readFileSync(
+  Bun.fileURLToPath(import.meta.resolve("design-system/tokens.css")),
+  "utf8",
+);
+const defined = new Set([...tokensCss.matchAll(/(--ds-[a-z0-9-]+)\s*:/g)].map((m) => m[1]));
 
-afterEach(() => {
-  if (scratch) rmSync(scratch, { recursive: true, force: true });
-  scratch = "";
-});
+/** Starlight property → design system colour role, from theme.css. */
+const roles = new Map(
+  [...theme.matchAll(/(--sl-color-[a-z0-9-]+):\s*var\(--ds-color-([a-z-]+)\)/g)].map((m) => [
+    m[1] as string,
+    m[2] as string,
+  ]),
+);
+type Theme = keyof typeof color;
+const hex = (themeName: Theme, property: string) => {
+  const role = roles.get(property);
+  if (!role) throw new Error(`theme.css maps no ${property}`);
+  return (color[themeName] as Record<string, string>)[role] as string;
+};
 
-function git(cwd: string, ...args: string[]) {
-  const run = Bun.spawnSync(["git", ...args], {
-    cwd,
-    stdout: "pipe",
-    stderr: "pipe",
-    env: {
-      ...process.env,
-      GIT_AUTHOR_NAME: "Test",
-      GIT_AUTHOR_EMAIL: "test@example.invalid",
-      GIT_COMMITTER_NAME: "Test",
-      GIT_COMMITTER_EMAIL: "test@example.invalid",
-    },
-  });
-  if (run.exitCode !== 0) throw new Error(run.stderr.toString());
-  return run.stdout.toString().trim();
-}
-
-describe("design system copy", () => {
-  test("is the file its lock names, byte for byte", () => {
-    expect(sha256(tokensBytes)).toBe(tokensCopy(lock).sha256);
+describe("design system package", () => {
+  test("every token the styles name is a token of the package", () => {
+    for (const name of ["design-system.css", "theme.css", "knowledgebase.css"]) {
+      const used = [...styles(name).matchAll(/var\((--ds-[a-z0-9-]+)\)/g)].map((m) => m[1]);
+      expect(
+        used.filter((token) => !defined.has(token)),
+        name,
+      ).toEqual([]);
+    }
   });
 
-  test("theme.css and favicon.svg are current (bun run theme:write)", () => {
-    const generated = generate(tokensBytes, lock);
-    expect(readFileSync(generatedPaths.theme, "utf8")).toBe(generated.theme);
-    expect(readFileSync(generatedPaths.favicon, "utf8")).toBe(generated.favicon);
+  test("theme.css maps Starlight's colours to roles of both themes, and only to roles", () => {
+    expect(roles.size).toBeGreaterThan(30);
+    for (const [property, role] of roles) {
+      expect(role in color.light && role in color.dark, `${property}: ${role}`).toBe(true);
+    }
+    expect(theme).not.toMatch(/#[0-9a-f]{3,8}\b|rgba?\(/i);
   });
 
-  test("an edited copy is refused", () => {
-    expect(() => generate(`${tokensBytes} `, lock)).toThrow("does not match the SHA-256");
+  test("the layout names no colour of its own", () => {
+    expect(styles("knowledgebase.css")).not.toMatch(/#[0-9a-f]{3,8}\b|rgba?\(/i);
   });
 
-  test("a lock without the tokens or with another shape is refused", () => {
-    expect(() => parseLock({ ...lock, copied: [] })).toThrow("copied names");
-    expect(() => parseLock({ ...lock, extra: 1 })).toThrow("has exactly");
-  });
-
-  test("tokens without a role the theme needs are refused", () => {
-    const raw = JSON.parse(tokensBytes);
-    const { focus: _focus, ...light } = raw.themes.light;
-    expect(() => parseThemeTokens({ ...raw, themes: { ...raw.themes, light } })).toThrow(
-      "tokens.themes.light.focus",
-    );
-  });
-
-  test("names the repository of a GitHub remote", () => {
-    expect(repositoryUrl("https://github.com/Acme/design-system.git")).toBe(
-      "https://github.com/Acme/design-system",
-    );
-    expect(repositoryUrl("git@github.com:Acme/design-system.git")).toBe(
-      "https://github.com/Acme/design-system",
-    );
-    expect(repositoryUrl("/srv/git/design-system")).toBeNull();
-  });
-
-  test("a sync takes the files of a tag, rewrites the lock and names a changed adaptation", () => {
-    scratch = mkdtempSync(join(realpathSync.native(tmpdir()), "kb-design-system-"));
-    const source = join(scratch, "design-system");
-    const target = join(scratch, "app");
-    mkdirSync(join(source, "content/brand/colors"), { recursive: true });
-    mkdirSync(join(source, "app/v1/src"), { recursive: true });
-    const darker = tokensBytes.replace('"graphite-950": "#0e1117"', '"graphite-950": "#0d1016"');
-    writeFileSync(join(source, "content/brand/colors/tokens.json"), darker);
-    writeFileSync(join(source, "app/v1/src/tokens.ts"), "// changed\n");
-    git(source, "init", "-q");
-    git(source, "add", "-A");
-    git(source, "commit", "-q", "-m", "release");
-    git(source, "tag", "v9.0.0");
-    mkdirSync(join(target, "src/design-system"), { recursive: true });
-    cpSync(join(app, LOCK_PATH), join(target, LOCK_PATH));
-
-    const report = syncDesignSystem({
-      app: target,
-      checkout: source,
-      ref: "v9.0.0",
-      source: "https://github.com/Acme/design-system",
-    });
-    expect(report.lock.ref).toBe("v9.0.0");
-    expect(report.lock.commit).toBe(git(source, "rev-parse", "HEAD"));
-    expect(readFileSync(join(target, "src/design-system/tokens.json"), "utf8")).toBe(darker);
-    expect(readLock(target)).toEqual(report.lock);
-    expect(report.changed).toEqual([
-      { from: "app/v1/src/tokens.ts", to: "src/design-system/theme.ts" },
-    ]);
-    expect(() =>
-      syncDesignSystem({
-        app: target,
-        checkout: source,
-        ref: "v0.0.1",
-        source: report.lock.source,
-      }),
-    ).toThrow("no tag or commit");
+  test("the favicon is the brand's logo symbol in its ink and accent", () => {
+    const svg = faviconSvg();
+    expect(svg).toContain(logoSymbol.markup);
+    expect(svg).toContain(`color:${color.light.ink}`);
+    expect(svg).toContain(`--ds-color-accent:${color.dark.accent}`);
   });
 });
 
-describe("contrast (WCAG AA, 4.5:1 for text) in both themes", () => {
-  for (const theme of THEMES) {
+// WCAG 2.2 AA, 4.5:1 for text: the pairs Starlight draws text with.
+const TEXT_PAIRS: ReadonlyArray<readonly [string, string]> = [
+  ["--sl-color-white", "--sl-color-black"],
+  ["--sl-color-gray-2", "--sl-color-black"],
+  ["--sl-color-gray-3", "--sl-color-gray-6"],
+  ["--sl-color-gray-2", "--sl-color-bg-nav"],
+  ["--sl-color-text-accent", "--sl-color-black"],
+  ["--sl-color-text-invert", "--sl-color-text-accent"],
+  ["--sl-color-accent-high", "--sl-color-accent-low"],
+  ["--sl-color-banner-text", "--sl-color-banner-bg"],
+  ["--sl-color-blue-high", "--sl-color-blue-low"],
+  ["--sl-color-purple-high", "--sl-color-purple-low"],
+  ["--sl-color-green-high", "--sl-color-green-low"],
+  ["--sl-color-orange-high", "--sl-color-orange-low"],
+  ["--sl-color-red-high", "--sl-color-red-low"],
+];
+
+describe("contrast (WCAG AA) in both themes", () => {
+  for (const themeName of ["light", "dark"] as const) {
     for (const [text, surface] of TEXT_PAIRS) {
-      test(`${theme}: ${text} on ${surface}`, () => {
-        const roles = tokens.themes[theme];
-        expect(contrastRatio(roles[text], roles[surface])).toBeGreaterThanOrEqual(4.5);
+      test(`${themeName}: ${text} on ${surface}`, () => {
+        expect(contrast(hex(themeName, text), hex(themeName, surface))).toBeGreaterThanOrEqual(
+          MINIMUM.text,
+        );
       });
     }
   }
-});
-
-test("the stylesheet sets Starlight's colours for both themes, the fonts and the type scale", () => {
-  const css = themeStylesheet(tokens, "test");
-  expect(css).toContain(":root {");
-  expect(css).toContain(':root[data-theme="light"] {');
-  expect(css).toContain(`--sl-font: ${tokens.fonts.sans};`);
-  expect(css).toContain(`--sl-text-h1: ${tokens.sizes.h1 / 16}rem;`);
-  expect(css).not.toMatch(/undefined/);
 });

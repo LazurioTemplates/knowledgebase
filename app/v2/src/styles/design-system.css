@@ -1,0 +1,11 @@
+/*
+ * The Organization's design system, from its package (`design-system`, a
+ * dependency on a released tag in package.json): tokens, the brand's fonts,
+ * base styles and components. It sits in a cascade layer before Starlight's:
+ * Starlight imports this file first, so the order holds. Starlight's layout
+ * and components keep their own rules; the design system's base rules apply
+ * where Starlight sets none, its tokens apply everywhere, and theme.css maps
+ * Starlight's properties onto them.
+ */
+@layer design-system, starlight;
+@import "design-system/styles.css" layer(design-system);

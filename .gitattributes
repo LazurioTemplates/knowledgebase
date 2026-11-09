@@ -1,5 +1,4 @@
 # Keep every text file LF on every platform, so that a Windows checkout with
-# core.autocrlf=true keeps the design system snapshot byte for byte (its lock
-# holds the SHA-256) and the generated theme current.
+# core.autocrlf=true reads the pages and the tests' fixtures as they are.
 * text=auto eol=lf
 *.webp binary

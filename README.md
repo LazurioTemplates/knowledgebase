@@ -34,10 +34,11 @@ the person's instruction. LazurioTemplates publishes the template.
   (`bun run start:language <cs|en>`).
 - Two starts: the invented example (one page in every section) or empty
   (`bun run start:empty` keeps only the structure).
-- The look comes from the Organization's design system as a locked copy of
-  its tokens ([`LazurioTemplates/design-system`](https://github.com/LazurioTemplates/design-system)
-  v1.0.0 in this release, taken by `bun run design-system:sync`), never read
-  at run time.
+- The look comes from the Organization's design system as a package: a
+  dependency on a released tag
+  ([`LazurioTemplates/design-system`](https://github.com/LazurioTemplates/design-system)
+  v2.0.0 in this release). Starlight takes its styles and tokens; an
+  Organization moves the pin to its own design system.
 - [`docs/extending.md`](docs/extending.md): changes within the generation,
   when the knowledge base would change generation, taking a newer release,
   releasing.
@@ -82,9 +83,9 @@ says how the Organization root points its agents here.
 |---|---|
 | `data/v2/knowledgebase.json` | The declared structure: the language shown and, for each language, its root pages, sections and their kinds |
 | `data/v2/docs/cs/`, `data/v2/docs/en/` | The pages of each language, Markdown with frontmatter |
-| `data/v2/public/` | Files the pages link to, and the favicon |
-| `app/v2/` | The read-only viewer App (Astro and Starlight, TypeScript) and the tools `start:empty`, `start:language`, `design-system:sync`, `theme:write` |
-| `app/v2/src/design-system/` | The copy of the design system's tokens, its lock and the theme made from it |
+| `data/v2/public/` | Files the pages link to |
+| `app/v2/` | The read-only viewer App (Astro and Starlight, TypeScript) and the tools `start:empty`, `start:language` |
+| `app/v2/src/styles/` | The design system's styles in their cascade layer, Starlight's properties on its tokens, the layout |
 | `.agents/skills/`, `.claude/skills/` | The skills for agents |
 | `docs/` | Adoption, extending, the Marketplace screens per language (`docs/screenshots/cs/`, `docs/screenshots/en/`) |
 | `lazurio.module.json` | Module id, port lease and Apps |

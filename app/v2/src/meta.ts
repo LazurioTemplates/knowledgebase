@@ -27,7 +27,8 @@ export type Fact = Readonly<{
   /** The value in parts, when some of them are links (the sources). */
   parts?: readonly Part[] | undefined;
   href?: string | undefined;
-  tone?: "draft" | "outdated" | undefined;
+  /** The status as a badge of the design system: its tone. */
+  tone?: "success" | "warning" | "danger" | undefined;
   /** Search indexes this fact (the other names of a term). */
   indexed?: boolean | undefined;
 }>;
@@ -46,6 +47,8 @@ const MONTHS_EN = [
   "November",
   "December",
 ];
+
+const TONE = { current: "success", draft: "warning", outdated: "danger" } as const;
 
 /** A date as people write it in the language, the same in every time zone:
  * 12. 10. 2026 in Czech, 12 October 2026 in English. */
@@ -66,8 +69,7 @@ export function describePage(
   const { facts: label, statuses } = labelsOf(language);
   const facts: Fact[] = [];
   if (meta.status) {
-    const tone = meta.status === "current" ? undefined : meta.status;
-    facts.push({ label: label.status, value: statuses[meta.status], tone });
+    facts.push({ label: label.status, value: statuses[meta.status], tone: TONE[meta.status] });
   }
   if (meta.decided_by) facts.push({ label: label.decidedBy, value: meta.decided_by });
   if (meta.decided) facts.push({ label: label.decided, value: formatDate(meta.decided, language) });

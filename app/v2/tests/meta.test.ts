@@ -21,7 +21,7 @@ const meta = {
 
 test("a page's metadata in Czech, a decision with its replacement as a link", () => {
   expect(describePage(meta, "cs", (id) => `/${id}/`)).toEqual([
-    { label: "Stav", value: "zastaralé, platí jen pro historii", tone: "outdated" },
+    { label: "Stav", value: "zastaralé, platí jen pro historii", tone: "danger" },
     { label: "Kdo rozhodl", value: "Vedení" },
     { label: "Kdy", value: "15. 9. 2026" },
     { label: "Nahrazeno", value: "0002-novy-postup", href: "/rozhodnuti/0002-novy-postup/" },

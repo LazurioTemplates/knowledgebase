@@ -27,10 +27,10 @@ the knowledge base keeps the confirmed result and links the source.
   page corpus. MDX is not read: its grammar differs, and a knowledge base
   page needs no components; Starlight's asides work in Markdown (`:::note`).
 - Files the pages link to: `data/v2/public/`.
-- Look: `app/v2/src/design-system/tokens.json`, an unchanged copy of the
-  design system's tokens, with `lock.json` (the design system's repository,
-  release and commit, the copied file with its SHA-256, and the file the
-  theme adapted with the SHA-256 of its source).
+- Look: the Organization's design system, the package `design-system` on a
+  released tag (`app/v2/package.json`; `bun.lock` pins the tag's commit and
+  its `sha512`). The template depends on `LazurioTemplates/design-system`
+  v2.0.0, the invented Example brand.
 
 ## Language
 
@@ -108,11 +108,19 @@ as HTML, so the rules read one link more than renders, never one less.
   `sample`); the route middleware (`src/routeData.ts`)
   puts a banner on every example page and names the section in the previous
   and next links instead of a bare "Přehled".
-- `src/styles/theme.css` and `data/v2/public/favicon.svg` are generated from
-  the copy of the design system's tokens (`bun run theme:write`): Starlight's
-  colours of both themes, the font stacks and the type scale. The tests fail
-  when they are stale, when the copy does not match its lock, or when a text
-  colour of the theme falls below WCAG AA contrast on its surface.
+- The look comes from the design system's package. `src/styles/design-system.css`
+  imports `design-system/styles.css` (tokens, the brand's fonts, base styles,
+  components) into a cascade layer `design-system` declared before
+  Starlight's: Starlight imports custom CSS first, so its own layout and
+  components keep their rules and the design system's base rules fill only
+  what Starlight leaves. `src/styles/theme.css` maps Starlight's colours,
+  fonts and type scale onto the design system's roles (`--ds-color-*`); both
+  switch the theme by `data-theme` on `<html>`. The status of a page is the
+  design system's `Badge`, and `/favicon.svg` is its brand's logo symbol
+  (`src/favicon.ts`). The tests check that every token the styles name exists
+  in the package, that the theme names roles and no colour of its own, and
+  that every text colour Starlight draws on a surface reaches WCAG AA
+  contrast in both themes.
 - Search is Starlight's Pagefind index, built with the site.
 
 The App follows the Lazurio Module Standard. Its single lease `main` lives in
@@ -134,11 +142,6 @@ Bun scripts in `app/v2/src/cli/`, run from `app/v2`:
   example.
 - `bun run start:language <cs|en> [--dry-run]`: makes one language the
   knowledge base's and removes the others.
-- `bun run design-system:sync -- <checkout> <tag or commit>`: copies the
-  files of the lock from the design system's commit (read from Git, not the
-  working tree), rewrites the lock, regenerates the theme and names the
-  adapted files whose source changed. Nothing is fetched.
-- `bun run theme:write`: regenerates the theme and the favicon from the copy.
 
 ## Agents
 
@@ -151,9 +154,9 @@ request; merging stays the person's Publication.
 
 - `data/v2/docs` is the only page corpus and `knowledgebase.json` its only
   structure.
-- Derived artefacts (`.astro/`, `dist/`) are rebuilt and never committed;
-  generated files that are committed (`theme.css`, `favicon.svg`) are checked
-  for staleness.
+- Derived artefacts (`.astro/`, `dist/`) are rebuilt and never committed.
+- The design system is a dependency on a released tag, never a copy, a
+  relative path or a branch.
 - Secrets, platform accounts, raw exports and customers' data never enter the
   module.
 - The App never reads another repository at run time.

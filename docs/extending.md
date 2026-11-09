@@ -35,6 +35,7 @@ its content rules read links with:
 | `micromark-extension-gfm`, `mdast-util-gfm` | 3.0.0, 3.1.0 | GFM, which Astro renders by default (tables, autolinks, footnotes) |
 | `micromark-extension-directive`, `mdast-util-directive` | 4.0.0, 3.2.0 | The directive syntax of Starlight's asides, the versions Starlight installs |
 | `parse5` | 8.0.1 | Raw HTML in a page, parsed as a browser does |
+| `design-system` | `github:LazurioTemplates/design-system#v2.0.0` | The Organization's design system as a package on a released tag: styles, tokens, fonts, the status badge, the brand's logo |
 
 Every dependency is pinned exactly (no `^` or `~`) and `bun.lock` is
 committed; the template test fails on a range. What the upgrade guides of
@@ -89,14 +90,16 @@ Most work is here and needs nothing beyond an ordinary pull request:
   it in `ARCHITECTURE.md` and the guide page of each language, and show it in
   `src/meta.ts` with its label in each language of `src/labels.ts` when
   people should see it.
-- **The look.** Take it from the Organization's design system with
-  `bun run design-system:sync -- <checkout> <tag or commit>`; never edit
-  `tokens.json` or `theme.css` by hand. The layout on top of it is
-  `src/styles/knowledgebase.css`, which names only Starlight's properties.
-  A newer release of the design system template (for example 2.0.0) is taken
-  the same way: the sync copies its tokens, rewrites the lock and names the
-  adapted code to port (`src/design-system/theme.ts`); a design system whose
-  tokens changed shape needs that port in the same pull request.
+- **The look.** It comes from the design system's package. A newer release,
+  or the Organization's new brand, is a new tag in the `design-system`
+  dependency, `bun install` and `bun run check`; read the release's
+  changelog for what the module must change. `src/styles/theme.css` maps
+  Starlight onto the design system's roles and `src/styles/knowledgebase.css`
+  lays the pages out with its tokens; neither names a colour of its own. Use
+  the design system's components (`design-system/astro/<Component>.astro`)
+  where the App needs one, as the page title does with `Badge`. An
+  Organization's private design system cannot be installed in GitHub Actions
+  yet (Lazurio/LazurioPlatform#915); see `docs/adoption.md`.
 - **The App.** `app/v2/src/` stays a read-only viewer with no authoring
   interface: people and agents change the content in pull requests.
 
@@ -166,10 +169,9 @@ to do. When files conflict:
 - keep the module's identity (`lazurio.module.json`, the `lazurio.runtime`
   id and names) and its content: `data/v2/docs/`, the sections of
   `knowledgebase.json`, `data/v2/public/`;
-- keep the module's copy of the design system and its lock
-  (`app/v2/src/design-system/tokens.json`, `lock.json`) and regenerate what
-  depends on them with `bun run theme:write` (the release may change how the
-  tokens become the theme);
+- keep the module's `design-system` dependency (the Organization's own
+  design system and its tag) in `app/v2/package.json`, and run `bun install`
+  so that `bun.lock` matches it;
 - keep the module's language: when the release changes pages of a language
   the module no longer carries (`data/v2/docs/<other>/`), Git reports them as
   modified on one side and deleted on the other; keep them deleted

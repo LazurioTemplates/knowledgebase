@@ -15,8 +15,8 @@ in `app/v2` only reads it.
   the same structure and example; `bun run start:language <cs|en>` in
   `app/v2` keeps one.
 - `public/` holds files published at stable root URLs (images and documents
-  the pages link to). `favicon.svg` is generated from the design system copy
-  (`bun run theme:write`).
+  the pages link to). The favicon is the design system's brand, built by the
+  App.
 
 Pages with `sample: true` are the template's invented example; `bun run
 start:empty` in `app/v2` removes them. The metadata contract is in

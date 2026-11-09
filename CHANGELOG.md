@@ -53,18 +53,18 @@ of Lazurio.
   Markdown parser with the grammar the site renders (micromark with GFM and
   Starlight's directives, raw HTML with `parse5`), and a build test compares
   them with the links Starlight renders.
-- **Design system as a locked copy**: the tokens of
-  `LazurioTemplates/design-system` v1.0.0, copied unchanged, with a lock
-  (source, release, commit, SHA-256 of the copied file and of the adapted
-  source) in the shape the other Marketplace templates use;
-  `bun run design-system:sync -- <checkout> <tag>` takes the Organization's
-  own or a newer release, `bun run theme:write` regenerates the theme (the
-  colours of both themes, the fonts, the type scale). Tests hold the lock,
-  the generated files and WCAG AA contrast of the theme's text.
+- **Design system as a package**: `design-system` on the released tag
+  `github:LazurioTemplates/design-system#v2.0.0`. Starlight takes its styles
+  (in a cascade layer before Starlight's own) and its tokens: colours of both
+  themes, fonts and type scale; the status of a page is its `Badge`, the
+  favicon its brand's logo. An Organization changes only the dependency to
+  its own design system. Tests check that every token named exists in the
+  package and that the text Starlight draws reaches WCAG AA contrast in both
+  themes.
 - **One gate:** `bun run check` runs the type check, Biome and every test
   (structure and content of each language, the starts, the design system
-  copy and its contrast, skills, Windows paths, template contract, start and
-  the build of each language). CI runs it on Linux, and on Windows for
+  and its contrast, skills, Windows paths, template contract, start and the
+  build of each language). CI runs it on Linux, and on Windows for
   changes of the App.
 - **Stack:** Bun 1.4.4, Astro 7.4.5, Starlight 0.42.8, `@astrojs/check`
   0.9.12, TypeScript 6.0.3, Biome 2.6.4, `@lazurio/module-kit` 0.2.0; every

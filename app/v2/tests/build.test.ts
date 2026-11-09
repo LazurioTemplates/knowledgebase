@@ -113,6 +113,7 @@ function expectLanguage(output: string, data: string, language: Language) {
   }
   expect(existsSync(join(output, "pagefind"))).toBe(true);
   expect(isFile(join(output, "404.html"))).toBe(true);
+  expect(isFile(join(output, "favicon.svg"))).toBe(true);
 }
 
 describe("build contract", () => {

@@ -71,9 +71,11 @@ differ.
   and exits with code 2 without them. The port lives only in
   `lazurio.module.json`.
 - No `.env*` files, secrets or imports from outside this repository. The
-  design system arrives as a locked copy in `app/v2/src/design-system/`
-  (`lock.json`), taken by `bun run design-system:sync -- <checkout> <tag>`;
-  never edit the copy or `src/styles/theme.css` by hand.
+  design system is a package, `design-system` in `app/v2/package.json` on a
+  released tag; import from `design-system/...` and never copy its files, use
+  a relative path to it or depend on a branch. Colours and fonts come only
+  from its tokens (`--ds-*`); `src/styles/theme.css` maps Starlight onto
+  them.
 - One change, one worktree, one branch, one pull request; the primary checkout
   stays on `main`. Merging is Publication: only on the person's instruction.
 
