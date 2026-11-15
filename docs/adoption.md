@@ -54,8 +54,11 @@ Until the Admin role in Lazurio Auth is deployed, an active Organization
 Owner (GitHub role `admin`) performs it, so today `lazurio module create`
 for an Organization is run by one. When the person is not one, do not look
 for another way: prepare the plan and one request for the Admin (skill
-`admin-request`: who and what to run), recorded as an issue in the
-Organization's root repository, give the person its URL and stop there.
+`admin-request`: who and what to run), record it as an issue in the
+Organization's root repository and give the person its URL. When the person
+has no access to that repository, or GitHub refuses the issue, give them the
+same text as a short message for the Admin and leave sending it to them.
+Either way, stop there.
 
 ## 3. Check the name
 
