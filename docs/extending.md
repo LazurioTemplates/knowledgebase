@@ -16,7 +16,7 @@ store. The pages lie beside the App in `data/v2/` with a structure the App
 checks (`knowledgebase.json`), which is what `app/v2` means.
 
 The tools follow the stack profile
-**[`content@2026.11`](https://github.com/Lazurio/LazurioPlatform/blob/main/docs/stack-profiles.md#content)**
+**[`content@2026.12`](https://github.com/Lazurio/LazurioPlatform/blob/main/docs/stack-profiles.md#content)**
 of Lazurio, shared by the Marketplace templates built on Astro (design
 system, website, knowledge base). The profile defines the pins up to
 `@lazurio/module-kit`; the knowledge base adds the Markdown and HTML parsers

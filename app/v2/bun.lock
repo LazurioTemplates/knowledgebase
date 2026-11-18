@@ -6,7 +6,7 @@
       "name": "knowledgebase-app-v1",
       "dependencies": {
         "@astrojs/starlight": "0.42.8",
-        "@lazurio/module-kit": "github:Lazurio/module-kit#v0.2.0",
+        "@lazurio/module-kit": "github:Lazurio/module-kit#v0.4.0",
         "astro": "7.4.5",
         "design-system": "github:LazurioTemplates/design-system#v2.0.0",
         "mdast-util-directive": "3.2.0",
@@ -215,7 +215,7 @@
 
     "@jridgewell/sourcemap-codec": ["@jridgewell/sourcemap-codec@1.6.0", "", {}, "sha512-T7jf+5zgsZHwNJ4lvQ7/aezbyk0nNX+zJVWpmHA7VYsEx7a7qr5Rg5IbtJFqkgze5Y2sruq1RUY8Q837Od7iFw=="],
 
-    "@lazurio/module-kit": ["@lazurio/module-kit@github:Lazurio/module-kit#2183f0a", {}, "Lazurio-module-kit-2183f0a", "sha512-yCkj5xNH3lue5/eqbCW1TezlyJxx8fz2KpsmdlyWJ/JJIj2HW7phfNq7GTZwz+5RUGBbKCmZN6M1tsR6OcIpnw=="],
+    "@lazurio/module-kit": ["@lazurio/module-kit@github:Lazurio/module-kit#7cc0c4c", {}, "Lazurio-module-kit-7cc0c4c", "sha512-yqtGU6w5QpnJUL2jq/74Xr5x/VPoLoe9IzW14/k25vlaR1uiHIAEkpVyX3pntEgkWG2be/LkKCJKWpcOxYasPg=="],
 
     "@napi-rs/wasm-runtime": ["@napi-rs/wasm-runtime@1.2.4", "", { "dependencies": { "@tybys/wasm-util": "^0.10.3" }, "peerDependencies": { "@emnapi/core": "^1.7.1 || ^2.0.0-alpha.4", "@emnapi/runtime": "^1.7.1 || ^2.0.0-alpha.4" } }, "sha512-AJxoUD2/15ESHbvpcyjU274nsAPLuOtPHCk0vKJM5pj//Fg/B1FXNWjPnXTT9PymCYYiHo4zPj0ZomXBKhoy7g=="],
 
