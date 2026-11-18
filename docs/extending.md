@@ -30,7 +30,7 @@ its content rules read links with:
 | `@astrojs/check` | 0.9.12 | Type check of `.astro` files |
 | TypeScript | 6.0.3 | `astro check` does not support TypeScript 7 yet |
 | Biome | 2.6.4 | Lint and format in one tool |
-| `@lazurio/module-kit` | 0.2.0 | Listener, shutdown and development server options |
+| `@lazurio/module-kit` | 0.4.0 | Listener, shutdown and development server options |
 | `mdast-util-from-markdown` | 2.1.0 | The content rules and the empty start parse a page's links as Markdown (micromark), the version Starlight's `remark-directive` already installs |
 | `micromark-extension-gfm`, `mdast-util-gfm` | 3.0.0, 3.1.0 | GFM, which Astro renders by default (tables, autolinks, footnotes) |
 | `micromark-extension-directive`, `mdast-util-directive` | 4.0.0, 3.2.0 | The directive syntax of Starlight's asides, the versions Starlight installs |
