@@ -91,7 +91,7 @@ describe("template contract", () => {
 
   test("the documents name the stack profile this release follows", () => {
     for (const path of ["README.md", "docs/extending.md"]) {
-      expect(read(path), path).toContain("content@2026.12");
+      expect(read(path), path).toContain("content@2027.01");
     }
   });
 
