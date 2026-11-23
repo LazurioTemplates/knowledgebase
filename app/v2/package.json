@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "@astrojs/starlight": "0.42.8",
-    "@lazurio/module-kit": "github:Lazurio/module-kit#v0.5.0",
+    "@lazurio/module-kit": "github:Lazurio/module-kit#v0.6.0",
     "astro": "7.4.5",
     "design-system": "github:LazurioTemplates/design-system#v2.0.0",
     "mdast-util-directive": "3.2.0",
