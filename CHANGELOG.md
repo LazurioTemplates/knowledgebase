@@ -5,6 +5,8 @@ is independent of the App generation ([`docs/extending.md`](docs/extending.md)).
 
 ## Unreleased
 
+## 0.3.0 — 2026-11-24
+
 ### For whoever runs it
 
 - The stack profile release `content@2027.02`: `@lazurio/module-kit` v0.6.0
