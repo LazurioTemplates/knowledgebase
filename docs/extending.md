@@ -16,7 +16,7 @@ store. The pages lie beside the App in `data/v2/` with a structure the App
 checks (`knowledgebase.json`), which is what `app/v2` means.
 
 The tools follow the stack profile
-**[`content@2026.12`](https://github.com/Lazurio/LazurioPlatform/blob/main/docs/stack-profiles.md#content)**
+**[`content@2027.02`](https://github.com/Lazurio/LazurioPlatform/blob/main/docs/stack-profiles.md#content)**
 of Lazurio, shared by the Marketplace templates built on Astro (design
 system, website, knowledge base). The profile defines the pins up to
 `@lazurio/module-kit`; the knowledge base adds the Markdown and HTML parsers
@@ -30,7 +30,7 @@ its content rules read links with:
 | `@astrojs/check` | 0.9.12 | Type check of `.astro` files |
 | TypeScript | 6.0.3 | `astro check` does not support TypeScript 7 yet |
 | Biome | 2.6.4 | Lint and format in one tool |
-| `@lazurio/module-kit` | 0.4.0 | Listener, shutdown and development server options |
+| `@lazurio/module-kit` | 0.6.0 | Listener, shutdown and development server options |
 | `mdast-util-from-markdown` | 2.1.0 | The content rules and the empty start parse a page's links as Markdown (micromark), the version Starlight's `remark-directive` already installs |
 | `micromark-extension-gfm`, `mdast-util-gfm` | 3.0.0, 3.1.0 | GFM, which Astro renders by default (tables, autolinks, footnotes) |
 | `micromark-extension-directive`, `mdast-util-directive` | 4.0.0, 3.2.0 | The directive syntax of Starlight's asides, the versions Starlight installs |
